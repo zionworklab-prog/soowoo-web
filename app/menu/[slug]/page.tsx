@@ -53,10 +53,17 @@ export default async function DrinkDetailPage({
         />
 
         <div className="flex flex-col gap-3">
-          <span className="font-mono text-xs text-cream/50">
-            {drink.category}
-            {drink.type ? ` · ${drink.type}` : ""}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs text-cream/50">
+              {drink.category}
+              {drink.type && drink.type !== drink.category ? ` · ${drink.type}` : ""}
+            </span>
+            {drink.soldOut && (
+              <span className="border border-cream/30 px-2 py-0.5 font-mono text-[10px] text-cream/60">
+                품절
+              </span>
+            )}
+          </div>
           <h1 className="font-serif text-2xl font-medium sm:text-3xl">
             {drink.name}
           </h1>
@@ -72,7 +79,8 @@ export default async function DrinkDetailPage({
           <Field label="도수" value={drink.abv} />
           <Field label="산도" value={drink.acidity} />
           <Field label="지역" value={drink.region} />
-          <Field label="주도" value={drink.brewery} />
+          <Field label="주도" value={drink.sakeDegree} />
+          <Field label="정미보합" value={drink.riceMilling} />
           <Field label="테이스팅 노트" value={drink.tastingNotes} full />
           <Field label="추천 페어링" value={drink.pairing} full />
         </dl>

@@ -64,27 +64,38 @@ function plainText(rich: RichTextItemResponse[] | undefined): string {
   return rich.map((t) => t.plain_text).join("");
 }
 
-// 실제 Notion 컬럼명이 아래 후보들과 다르면 scripts/inspect-notion.ts 결과를 보고 조정한다.
+// scripts/inspect-notion.ts로 확인한 실제 soowoo-drink DB 컬럼명.
 const FIELD_CANDIDATES = {
   name: ["이름", "Name", "제품명"],
-  category: ["카테고리", "Category", "분류"],
-  type: ["종류", "Type", "세부종류"],
+  category: ["종류", "카테고리", "Category"],
   region: ["지역", "Region", "산지"],
-  brewery: ["주도", "Brewery", "양조장"],
+  sakeDegreeNumber: ["주도"],
+  sakeDegreeText: ["주도(日本酒度)"],
   acidity: ["산도", "Acidity"],
-  abv: ["도수", "ABV", "도수(%)"],
-  price: ["가격", "Price"],
-  description: ["설명", "Description", "소개"],
-  tastingNotes: ["테이스팅노트", "테이스팅 노트", "Tasting Notes"],
-  pairing: ["추천페어링", "추천 페어링", "페어링", "Pairing"],
-  sortOrder: ["정렬순서", "정렬 순서", "Sort", "Order"],
+  abv: ["도수", "ABV"],
+  riceMilling: ["정미보합"],
+  description: ["설명(한줄)", "설명", "Description"],
+  tastingNotes: ["상세설명", "테이스팅노트", "테이스팅 노트"],
+  pairing: ["추천 페어링", "추천페어링", "페어링"],
+  sortOrder: ["정렬순서", "정렬 순서", "Sort"],
   image: ["이미지", "Image", "사진"],
+  visible: ["노출"],
+  soldOut: ["품절"],
+  featured: ["추천메뉴"],
+  glassOnSale: ["잔 판매"],
+  glassPrice: ["잔 가격"],
+  bottleOnSale: ["병 판매"],
+  bottlePrice: ["병 가격"],
+  tokkuriOnSale: ["도쿠리 판매"],
+  tokkuriPrice: ["도쿠리 가격"],
 } as const;
+
+type NotionProperty = PageObjectResponse["properties"][string];
 
 function findProperty(
   page: PageObjectResponse,
   candidates: readonly string[]
-) {
+): NotionProperty | undefined {
   const entries = Object.entries(page.properties);
   for (const candidate of candidates) {
     const match = entries.find(
@@ -95,46 +106,100 @@ function findProperty(
   return undefined;
 }
 
-function propertyToText(prop: PageObjectResponse["properties"][string] | undefined): string {
-  if (!prop) return "";
-  switch (prop.type) {
-    case "title":
-      return plainText(prop.title);
-    case "rich_text":
-      return plainText(prop.rich_text);
-    case "select":
-      return prop.select?.name ?? "";
-    case "multi_select":
-      return prop.multi_select.map((o) => o.name).join(", ");
-    case "number":
-      return prop.number != null ? String(prop.number) : "";
-    case "url":
-      return prop.url ?? "";
-    default:
-      return "";
-  }
+function prop(page: PageObjectResponse, candidates: readonly string[]) {
+  return findProperty(page, candidates);
 }
 
-function propertyToNumber(prop: PageObjectResponse["properties"][string] | undefined): number | undefined {
-  if (!prop) return undefined;
-  if (prop.type === "number") return prop.number ?? undefined;
-  const text = propertyToText(prop);
-  const parsed = Number(text);
-  return Number.isFinite(parsed) ? parsed : undefined;
+function propertyToText(p: NotionProperty | undefined): string {
+  if (!p) return "";
+  const raw = (() => {
+    switch (p.type) {
+      case "title":
+        return plainText(p.title);
+      case "rich_text":
+        return plainText(p.rich_text);
+      case "select":
+        return p.select?.name ?? "";
+      case "multi_select":
+        return p.multi_select.map((o) => o.name).join(", ");
+      case "number":
+        return p.number != null ? String(p.number) : "";
+      case "url":
+        return p.url ?? "";
+      default:
+        return "";
+    }
+  })();
+  // 자모가 분리된 형태(NFD)로 저장된 한글이 있어 항상 완성형(NFC)으로 정규화한다.
+  return raw.normalize("NFC");
 }
 
-function propertyToImageUrl(prop: PageObjectResponse["properties"][string] | undefined): string | undefined {
-  if (!prop || prop.type !== "files") return undefined;
-  const file = prop.files[0];
+function propertyToNumber(p: NotionProperty | undefined): number | undefined {
+  if (!p) return undefined;
+  if (p.type === "number") return p.number ?? undefined;
+  const parsed = Number(propertyToText(p));
+  return Number.isFinite(parsed) && propertyToText(p) !== "" ? parsed : undefined;
+}
+
+function propertyToBoolean(p: NotionProperty | undefined): boolean {
+  return p?.type === "checkbox" ? p.checkbox : false;
+}
+
+function propertyToImageUrl(p: NotionProperty | undefined): string | undefined {
+  if (!p || p.type !== "files") return undefined;
+  const file = p.files[0];
   if (!file) return undefined;
   if (file.type === "file") return file.file.url;
   if (file.type === "external") return file.external.url;
   return undefined;
 }
 
-// Notion의 카테고리 값(예: "고구마 소주", "보리 소주")을 사이트 상단 카테고리로 합친다.
-// "동해 소주"처럼 이름에 '소주'가 들어가도 카테고리가 "전통주"면 전통주로 남는다 —
-// 아래는 이름이 아니라 카테고리 필드 값만 보고 판단한다.
+function formatWon(n: number): string {
+  return `${n.toLocaleString("ko-KR")}원`;
+}
+
+// 잔 / 병 / 도쿠리 각각 판매 여부(checkbox) + 가격(number)이 따로 있어 하나의 표시용 문자열로 합친다.
+function extractPrice(page: PageObjectResponse): string | undefined {
+  const options: Array<{
+    label: string;
+    onSale: readonly string[];
+    price: readonly string[];
+  }> = [
+    { label: "잔", onSale: FIELD_CANDIDATES.glassOnSale, price: FIELD_CANDIDATES.glassPrice },
+    { label: "병", onSale: FIELD_CANDIDATES.bottleOnSale, price: FIELD_CANDIDATES.bottlePrice },
+    { label: "도쿠리", onSale: FIELD_CANDIDATES.tokkuriOnSale, price: FIELD_CANDIDATES.tokkuriPrice },
+  ];
+  const parts: string[] = [];
+  for (const option of options) {
+    const onSale = propertyToBoolean(prop(page, option.onSale));
+    const price = propertyToNumber(prop(page, option.price));
+    if (onSale && price != null) {
+      parts.push(`${option.label} ${formatWon(price)}`);
+    }
+  }
+  return parts.length ? parts.join(" · ") : undefined;
+}
+
+// 숫자형 "주도"가 있으면 우선 사용(+/- 부호를 붙여 일본주도 표기 관례를 따른다),
+// 없으면 텍스트형 "주도(日本酒度)"를 그대로 쓴다.
+function extractSakeDegree(page: PageObjectResponse): string | undefined {
+  const num = propertyToNumber(prop(page, FIELD_CANDIDATES.sakeDegreeNumber));
+  if (num != null) return num > 0 ? `+${num}` : String(num);
+  const text = propertyToText(prop(page, FIELD_CANDIDATES.sakeDegreeText));
+  return text || undefined;
+}
+
+function extractAbv(page: PageObjectResponse): string | undefined {
+  const num = propertyToNumber(prop(page, FIELD_CANDIDATES.abv));
+  return num != null ? `${num}도` : undefined;
+}
+
+function extractRiceMilling(page: PageObjectResponse): string | undefined {
+  const num = propertyToNumber(prop(page, FIELD_CANDIDATES.riceMilling));
+  return num != null ? `${num}%` : undefined;
+}
+
+// Notion "종류" 값(예: "고구마소츄", "보리소츄")을 사이트 상단 카테고리로 합친다.
 function mapToTopCategory(rawCategory: string): DrinkCategory | null {
   if (rawCategory.includes("소주") || rawCategory.includes("소츄")) return "소주";
   if (rawCategory.includes("사케")) return "사케";
@@ -143,29 +208,38 @@ function mapToTopCategory(rawCategory: string): DrinkCategory | null {
 }
 
 function pageToDrink(page: PageObjectResponse, index: number): Drink | null {
-  const rawCategory = propertyToText(findProperty(page, FIELD_CANDIDATES.category));
+  const visible = propertyToBoolean(prop(page, FIELD_CANDIDATES.visible));
+  if (!visible) return null;
+
+  const rawCategory = propertyToText(prop(page, FIELD_CANDIDATES.category));
   const category = mapToTopCategory(rawCategory);
   if (!category) return null;
 
-  const name = propertyToText(findProperty(page, FIELD_CANDIDATES.name)) || "이름 없음";
-  const sortOrder =
-    propertyToNumber(findProperty(page, FIELD_CANDIDATES.sortOrder)) ?? index;
+  const name = propertyToText(prop(page, FIELD_CANDIDATES.name)) || "이름 없음";
+  const sortOrder = propertyToNumber(prop(page, FIELD_CANDIDATES.sortOrder)) ?? index;
+
+  const idSuffix = page.id.replace(/-/g, "").slice(-8);
 
   return {
-    slug: `${slugify(name)}-${page.id.slice(0, 8)}`,
+    // 같은 워크스페이스에서 만들어진 페이지들은 id 앞부분이 서로 같을 수 있어
+    // 뒤쪽(랜덤 구간)을 슬러그 접미사로 쓴다.
+    slug: `${slugify(name)}-${idSuffix}`,
     name,
     category,
-    type: propertyToText(findProperty(page, FIELD_CANDIDATES.type)) || rawCategory || undefined,
-    region: propertyToText(findProperty(page, FIELD_CANDIDATES.region)) || undefined,
-    brewery: propertyToText(findProperty(page, FIELD_CANDIDATES.brewery)) || undefined,
-    acidity: propertyToText(findProperty(page, FIELD_CANDIDATES.acidity)) || undefined,
-    abv: propertyToText(findProperty(page, FIELD_CANDIDATES.abv)) || undefined,
-    price: propertyToText(findProperty(page, FIELD_CANDIDATES.price)) || undefined,
-    description: propertyToText(findProperty(page, FIELD_CANDIDATES.description)) || undefined,
-    tastingNotes: propertyToText(findProperty(page, FIELD_CANDIDATES.tastingNotes)) || undefined,
-    pairing: propertyToText(findProperty(page, FIELD_CANDIDATES.pairing)) || undefined,
+    type: rawCategory || undefined,
+    region: propertyToText(prop(page, FIELD_CANDIDATES.region)) || undefined,
+    sakeDegree: extractSakeDegree(page),
+    acidity: propertyToText(prop(page, FIELD_CANDIDATES.acidity)) || undefined,
+    abv: extractAbv(page),
+    riceMilling: extractRiceMilling(page),
+    price: extractPrice(page),
+    description: propertyToText(prop(page, FIELD_CANDIDATES.description)) || undefined,
+    tastingNotes: propertyToText(prop(page, FIELD_CANDIDATES.tastingNotes)) || undefined,
+    pairing: propertyToText(prop(page, FIELD_CANDIDATES.pairing)) || undefined,
     sortOrder,
-    imageUrl: propertyToImageUrl(findProperty(page, FIELD_CANDIDATES.image)),
+    imageUrl: propertyToImageUrl(prop(page, FIELD_CANDIDATES.image)),
+    soldOut: propertyToBoolean(prop(page, FIELD_CANDIDATES.soldOut)),
+    featured: propertyToBoolean(prop(page, FIELD_CANDIDATES.featured)),
   };
 }
 

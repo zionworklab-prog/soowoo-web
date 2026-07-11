@@ -6,13 +6,16 @@ export interface Drink {
   category: DrinkCategory;
   type?: string;
   region?: string;
-  brewery?: string;
+  sakeDegree?: string;
   acidity?: string;
   abv?: string;
+  riceMilling?: string;
   price?: string;
   description?: string;
   tastingNotes?: string;
   pairing?: string;
   sortOrder: number;
   imageUrl?: string;
+  soldOut?: boolean;
+  featured?: boolean;
 }
