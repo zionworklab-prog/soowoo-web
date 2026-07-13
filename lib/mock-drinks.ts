@@ -2,7 +2,7 @@ import type { Drink } from "./types";
 import { slugify } from "./slugify";
 
 // Notion 연동 전 미리보기 및 개발용 목 데이터.
-// drink_menu 원본 중 사케 / 소주 / 전통주 항목만 옮겨왔다 (잔음료, 리큐어 제외).
+// drink_menu 원본 중 사케 / 소츄 / 전통주 항목만 옮겨왔다 (잔음료, 리큐어 제외).
 const raw: Omit<Drink, "slug">[] = [
   // 전통주
   {
@@ -203,18 +203,18 @@ const raw: Omit<Drink, "slug">[] = [
     sortOrder: 21,
   },
 
-  // 소주 - 고구마
+  // 소츄 - 고구마
   {
     name: "세키토바",
-    category: "소주",
+    category: "소츄",
     type: "고구마",
     price: "10,000원",
-    description: "고구마 소주의 모범생 같은 한 잔",
+    description: "고구마 소츄의 모범생 같은 한 잔",
     sortOrder: 22,
   },
   {
     name: "세키토바 무라사키",
-    category: "소주",
+    category: "소츄",
     type: "고구마 (자색고구마)",
     price: "10,000원",
     description: "잘 익은 고구마 같은 달큰함",
@@ -222,7 +222,7 @@ const raw: Omit<Drink, "slug">[] = [
   },
   {
     name: "세키토바 말차",
-    category: "소주",
+    category: "소츄",
     type: "고구마",
     price: "12,000원",
     description: "고구마 단맛 뒤로 말차 특유의 쌉싸름하고 맑은 향",
@@ -230,25 +230,25 @@ const raw: Omit<Drink, "slug">[] = [
   },
   {
     name: "다이야메",
-    category: "소주",
+    category: "소츄",
     type: "고구마",
     price: "8,000원 / 900ml 80,000원",
-    description: "고구마소주 특유의 무거움보단 맑고 리치한",
+    description: "고구마소츄 특유의 무거움보단 맑고 리치한",
     sortOrder: 25,
   },
   {
     name: "아카루이노우손 야부키타",
-    category: "소주",
+    category: "소츄",
     type: "고구마",
     price: "9,000원 / 720ml 90,000원",
-    description: "햇살 드는 시골 마을에 말차 밭이 떠오르는 정겨운 고구마소주",
+    description: "햇살 드는 시골 마을에 말차 밭이 떠오르는 정겨운 고구마소츄",
     sortOrder: 26,
   },
 
-  // 소주 - 보리
+  // 소츄 - 보리
   {
     name: "무기시루",
-    category: "소주",
+    category: "소츄",
     type: "보리",
     price: "8,000원",
     description: "우유에 말아먹는 조리퐁처럼 꼬소한",
@@ -256,15 +256,15 @@ const raw: Omit<Drink, "slug">[] = [
   },
   {
     name: "아카 엔마",
-    category: "소주",
+    category: "소츄",
     type: "보리",
     price: "8,000원 / 720ml 80,000원",
-    description: "맑고 반듯하게 떨어지는 보리소주",
+    description: "맑고 반듯하게 떨어지는 보리소츄",
     sortOrder: 28,
   },
   {
     name: "백년의고독",
-    category: "소주",
+    category: "소츄",
     type: "보리",
     abv: "40도",
     price: "720ml 210,000원",
@@ -276,4 +276,5 @@ const raw: Omit<Drink, "slug">[] = [
 export const mockDrinks: Drink[] = raw.map((d, i) => ({
   ...d,
   slug: `${slugify(d.name)}-${i}`,
+  priceSummary: d.price,
 }));

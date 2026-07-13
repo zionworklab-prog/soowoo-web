@@ -1,4 +1,4 @@
-export type DrinkCategory = "사케" | "소주" | "전통주";
+export type DrinkCategory = "사케" | "소츄" | "전통주";
 
 export interface Drink {
   slug: string;
@@ -11,6 +11,7 @@ export interface Drink {
   abv?: string;
   riceMilling?: string;
   price?: string;
+  priceSummary?: string;
   description?: string;
   tastingNotes?: string;
   pairing?: string;

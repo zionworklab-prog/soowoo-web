@@ -180,6 +180,28 @@ function extractPrice(page: PageObjectResponse): string | undefined {
   return parts.length ? parts.join(" · ") : undefined;
 }
 
+// 카드 목록에는 대표 가격 하나만 한 줄로 보여준다 (병 > 잔 > 도쿠리 우선순위).
+// 전체 판매 방식별 가격은 상세 팝업(extractPrice)에서만 보여준다.
+function extractPriceSummary(page: PageObjectResponse): string | undefined {
+  const options: Array<{
+    label: string;
+    onSale: readonly string[];
+    price: readonly string[];
+  }> = [
+    { label: "병", onSale: FIELD_CANDIDATES.bottleOnSale, price: FIELD_CANDIDATES.bottlePrice },
+    { label: "잔", onSale: FIELD_CANDIDATES.glassOnSale, price: FIELD_CANDIDATES.glassPrice },
+    { label: "도쿠리", onSale: FIELD_CANDIDATES.tokkuriOnSale, price: FIELD_CANDIDATES.tokkuriPrice },
+  ];
+  for (const option of options) {
+    const onSale = propertyToBoolean(prop(page, option.onSale));
+    const price = propertyToNumber(prop(page, option.price));
+    if (onSale && price != null) {
+      return `${option.label} ${formatWon(price)}`;
+    }
+  }
+  return undefined;
+}
+
 // 숫자형 "주도"가 있으면 우선 사용(+/- 부호를 붙여 일본주도 표기 관례를 따른다),
 // 없으면 텍스트형 "주도(日本酒度)"를 그대로 쓴다.
 function extractSakeDegree(page: PageObjectResponse): string | undefined {
@@ -201,7 +223,7 @@ function extractRiceMilling(page: PageObjectResponse): string | undefined {
 
 // Notion "종류" 값(예: "고구마소츄", "보리소츄")을 사이트 상단 카테고리로 합친다.
 function mapToTopCategory(rawCategory: string): DrinkCategory | null {
-  if (rawCategory.includes("소주") || rawCategory.includes("소츄")) return "소주";
+  if (rawCategory.includes("소주") || rawCategory.includes("소츄")) return "소츄";
   if (rawCategory.includes("사케")) return "사케";
   if (rawCategory.includes("전통주")) return "전통주";
   return null;
@@ -233,6 +255,7 @@ function pageToDrink(page: PageObjectResponse, index: number): Drink | null {
     abv: extractAbv(page),
     riceMilling: extractRiceMilling(page),
     price: extractPrice(page),
+    priceSummary: extractPriceSummary(page),
     description: propertyToText(prop(page, FIELD_CANDIDATES.description)) || undefined,
     tastingNotes: propertyToText(prop(page, FIELD_CANDIDATES.tastingNotes)) || undefined,
     pairing: propertyToText(prop(page, FIELD_CANDIDATES.pairing)) || undefined,

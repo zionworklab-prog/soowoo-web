@@ -1,65 +1,60 @@
 import type { Drink } from "@/lib/types";
 import { DrinkImagePlaceholder } from "@/components/DrinkImagePlaceholder";
 
-function Field({
-  label,
-  value,
-  full = false,
-}: {
-  label: string;
-  value?: string;
-  full?: boolean;
-}) {
+function Line({ label, value }: { label: string; value?: string }) {
   if (!value) return null;
   return (
-    <div
-      className={`flex flex-col gap-1 border-t border-cream/15 py-3 ${full ? "col-span-full" : ""}`}
-    >
-      <dt className="font-mono text-[10px] text-cream/45">{label}</dt>
-      <dd className="font-serif text-sm text-cream/90">{value}</dd>
+    <div className="flex gap-2">
+      <dt className="w-14 shrink-0 text-body-small text-muted">{label}</dt>
+      <dd className="text-body-small text-ink">{value}</dd>
     </div>
   );
 }
 
 export function DrinkDetailContent({ drink }: { drink: Drink }) {
-  return (
-    <div className="flex w-full flex-col gap-8 bg-ink text-cream">
-      <DrinkImagePlaceholder
-        category={drink.category}
-        imageUrl={drink.imageUrl}
-        className="aspect-[4/3] w-full"
-      />
+  const meta = [drink.category, drink.type && drink.type !== drink.category ? drink.type : null]
+    .filter(Boolean)
+    .join(" · ");
 
-      <div className="flex flex-col gap-3 px-6 sm:px-8">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-cream/50">
-            {drink.category}
-            {drink.type && drink.type !== drink.category ? ` · ${drink.type}` : ""}
-          </span>
-          {drink.soldOut && (
-            <span className="border border-cream/30 px-2 py-0.5 font-mono text-[10px] text-cream/60">
-              품절
-            </span>
+  return (
+    <div className="flex w-full flex-col gap-6 bg-canvas text-ink">
+      <DrinkImagePlaceholder imageUrl={drink.imageUrl} className="aspect-[3/4] w-full" />
+
+      <div className="flex flex-col gap-4 px-6 pb-8 sm:px-8">
+        <div className="flex flex-col gap-1">
+          <p className="text-caption text-muted">
+            {meta}
+            {drink.soldOut ? " · 품절" : ""}
+          </p>
+          <h1 className="text-section text-ink">{drink.name}</h1>
+          {drink.description && (
+            <p className="text-body text-muted">{drink.description}</p>
           )}
         </div>
-        <h1 className="font-serif text-2xl font-medium sm:text-3xl">{drink.name}</h1>
-        {drink.description && (
-          <p className="font-serif text-sm leading-7 text-cream/80 sm:text-base">
-            {drink.description}
-          </p>
+
+        <dl className="flex flex-col gap-1.5">
+          <Line label="가격" value={drink.price} />
+          <Line label="도수" value={drink.abv} />
+          <Line label="지역" value={drink.region} />
+          <Line label="산도" value={drink.acidity} />
+          <Line label="주도" value={drink.sakeDegree} />
+          <Line label="정미보합" value={drink.riceMilling} />
+        </dl>
+
+        {drink.tastingNotes && (
+          <div className="flex flex-col gap-1">
+            <p className="text-caption text-muted">테이스팅 노트</p>
+            <p className="text-body text-ink">{drink.tastingNotes}</p>
+          </div>
+        )}
+
+        {drink.pairing && (
+          <div className="flex flex-col gap-1">
+            <p className="text-caption text-muted">추천 페어링</p>
+            <p className="text-body text-ink">{drink.pairing}</p>
+          </div>
         )}
       </div>
-
-      <dl className="grid grid-cols-2 gap-x-8 px-6 pb-8 sm:grid-cols-3 sm:px-8">
-        <Field label="가격" value={drink.price} />
-        <Field label="도수" value={drink.abv} />
-        <Field label="산도" value={drink.acidity} />
-        <Field label="지역" value={drink.region} />
-        <Field label="주도" value={drink.sakeDegree} />
-        <Field label="정미보합" value={drink.riceMilling} />
-        <Field label="테이스팅 노트" value={drink.tastingNotes} full />
-        <Field label="추천 페어링" value={drink.pairing} full />
-      </dl>
     </div>
   );
 }

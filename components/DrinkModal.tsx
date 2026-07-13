@@ -4,6 +4,19 @@ import { useEffect } from "react";
 import type { Drink } from "@/lib/types";
 import { DrinkDetailContent } from "@/components/DrinkDetailContent";
 
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width={13} height={13} fill="none" aria-hidden="true">
+      <path
+        d="M6 6L18 18M18 6L6 18"
+        stroke="currentColor"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export function DrinkModal({
   drink,
   onClose,
@@ -32,20 +45,20 @@ export function DrinkModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4"
       onClick={onClose}
     >
       <div
-        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto"
+        className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[2px] bg-canvas shadow-[0_4px_24px_rgba(0,0,0,0.16)]"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="닫기"
-          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center border border-cream/30 bg-ink/60 font-mono text-sm text-cream/80 hover:text-cream"
+          className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-[2px] border border-hairline bg-canvas text-ink hover:bg-surface"
         >
-          ✕
+          <CloseIcon />
         </button>
         <DrinkDetailContent drink={drink} />
       </div>

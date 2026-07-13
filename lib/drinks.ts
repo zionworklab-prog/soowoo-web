@@ -2,7 +2,7 @@ import type { Drink, DrinkCategory } from "./types";
 import { mockDrinks } from "./mock-drinks";
 import { getNotionDrinks, isNotionConfigured } from "./notion";
 
-export const CATEGORY_ORDER: DrinkCategory[] = ["사케", "소주", "전통주"];
+export const CATEGORY_ORDER: DrinkCategory[] = ["사케", "소츄", "전통주"];
 
 export async function getAllDrinks(): Promise<Drink[]> {
   if (isNotionConfigured()) {
@@ -17,7 +17,7 @@ export async function getDrinksByCategory(): Promise<
   const drinks = await getAllDrinks();
   const grouped: Record<DrinkCategory, Drink[]> = {
     사케: [],
-    소주: [],
+    소츄: [],
     전통주: [],
   };
   for (const drink of drinks) {
