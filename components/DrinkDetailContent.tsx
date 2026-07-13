@@ -4,8 +4,8 @@ import { DrinkImagePlaceholder } from "@/components/DrinkImagePlaceholder";
 function Line({ label, value }: { label: string; value?: string }) {
   if (!value) return null;
   return (
-    <div className="flex gap-2">
-      <dt className="w-14 shrink-0 text-body-small text-muted">{label}</dt>
+    <div className="flex gap-1.5">
+      <dt className="w-[3.25rem] shrink-0 text-body-small text-muted">{label}</dt>
       <dd className="text-body-small text-ink">{value}</dd>
     </div>
   );
@@ -20,7 +20,7 @@ export function DrinkDetailContent({ drink }: { drink: Drink }) {
     <div className="flex w-full flex-col gap-6 bg-canvas text-ink">
       <DrinkImagePlaceholder imageUrl={drink.imageUrl} className="aspect-[3/4] w-full" />
 
-      <div className="flex flex-col gap-4 px-6 pb-8 sm:px-8">
+      <div className="flex flex-col px-6 pb-8 sm:px-8">
         <div className="flex flex-col gap-1">
           <p className="text-caption text-muted">
             {meta}
@@ -32,6 +32,8 @@ export function DrinkDetailContent({ drink }: { drink: Drink }) {
           )}
         </div>
 
+        <hr className="my-4 border-t border-hairline" />
+
         <dl className="flex flex-col gap-1.5">
           <Line label="가격" value={drink.price} />
           <Line label="도수" value={drink.abv} />
@@ -42,14 +44,14 @@ export function DrinkDetailContent({ drink }: { drink: Drink }) {
         </dl>
 
         {drink.tastingNotes && (
-          <div className="flex flex-col gap-1">
+          <div className="mt-8 flex flex-col gap-1">
             <p className="text-caption text-muted">테이스팅 노트</p>
             <p className="text-body text-ink">{drink.tastingNotes}</p>
           </div>
         )}
 
         {drink.pairing && (
-          <div className="flex flex-col gap-1">
+          <div className="mt-6 flex flex-col gap-1">
             <p className="text-caption text-muted">추천 페어링</p>
             <p className="text-body text-ink">{drink.pairing}</p>
           </div>

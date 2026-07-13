@@ -12,14 +12,16 @@ export function DrinkCard({
     <button
       type="button"
       onClick={() => onSelect(drink)}
-      className={`group flex flex-col gap-1.5 text-left ${drink.soldOut ? "opacity-50" : ""}`}
+      className={`group flex flex-col text-left ${drink.soldOut ? "opacity-50" : ""}`}
     >
       <DrinkImagePlaceholder
         imageUrl={drink.imageUrl}
         className="relative aspect-[3/4] w-full overflow-hidden"
       />
-      <span className="text-subheading text-ink group-hover:underline">{drink.name}</span>
-      <span className="text-price text-muted">
+      <span className="mt-3 text-body-small text-ink group-hover:underline sm:text-subheading">
+        {drink.name}
+      </span>
+      <span className="mt-0.5 text-caption text-muted sm:text-body-small">
         {drink.priceSummary}
         {drink.soldOut ? " · 품절" : ""}
       </span>

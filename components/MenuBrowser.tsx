@@ -30,7 +30,7 @@ export function MenuBrowser({
                 key={category}
                 type="button"
                 onClick={() => setFilter(active ? null : category)}
-                className={`border-b pb-0.5 text-caption tracking-[0.02em] transition-colors ${
+                className={`border-b pb-0.5 text-body-small tracking-[0.02em] transition-colors ${
                   active
                     ? "border-ink text-ink"
                     : "border-transparent text-muted hover:text-ink"
@@ -43,7 +43,7 @@ export function MenuBrowser({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 sm:gap-x-6 sm:gap-y-10">
+      <div className="grid grid-cols-2 gap-x-2 gap-y-8 sm:grid-cols-3 sm:gap-y-10">
         {drinks.map((drink) => (
           <DrinkCard key={drink.slug} drink={drink} onSelect={setSelected} />
         ))}

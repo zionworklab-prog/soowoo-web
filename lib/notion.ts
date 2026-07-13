@@ -180,8 +180,7 @@ function extractPrice(page: PageObjectResponse): string | undefined {
   return parts.length ? parts.join(" · ") : undefined;
 }
 
-// 카드 목록에는 대표 가격 하나만 한 줄로 보여준다 (병 > 잔 > 도쿠리 우선순위).
-// 전체 판매 방식별 가격은 상세 팝업(extractPrice)에서만 보여준다.
+// 카드 목록에는 병·잔 가격까지만 보여준다 (도쿠리는 상세 팝업에서만).
 function extractPriceSummary(page: PageObjectResponse): string | undefined {
   const options: Array<{
     label: string;
@@ -190,16 +189,16 @@ function extractPriceSummary(page: PageObjectResponse): string | undefined {
   }> = [
     { label: "병", onSale: FIELD_CANDIDATES.bottleOnSale, price: FIELD_CANDIDATES.bottlePrice },
     { label: "잔", onSale: FIELD_CANDIDATES.glassOnSale, price: FIELD_CANDIDATES.glassPrice },
-    { label: "도쿠리", onSale: FIELD_CANDIDATES.tokkuriOnSale, price: FIELD_CANDIDATES.tokkuriPrice },
   ];
+  const parts: string[] = [];
   for (const option of options) {
     const onSale = propertyToBoolean(prop(page, option.onSale));
     const price = propertyToNumber(prop(page, option.price));
     if (onSale && price != null) {
-      return `${option.label} ${formatWon(price)}`;
+      parts.push(`${option.label} ${formatWon(price)}`);
     }
   }
-  return undefined;
+  return parts.length ? parts.join(" · ") : undefined;
 }
 
 // 숫자형 "주도"가 있으면 우선 사용(+/- 부호를 붙여 일본주도 표기 관례를 따른다),

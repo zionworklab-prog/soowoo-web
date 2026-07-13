@@ -39,14 +39,14 @@ export function NavDrawer() {
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "메뉴 닫기" : "메뉴 열기"}
         aria-expanded={open}
-        className="relative z-50 flex h-11 w-11 items-center justify-center text-ink transition-transform duration-150 active:scale-90"
+        className="relative z-50 flex h-12 w-12 items-center justify-center text-ink transition-transform duration-150 active:scale-90"
       >
         <Image
           src="/brand/logo_symbol.svg"
           alt=""
           width={69}
           height={38}
-          className={`absolute w-9 transition-all duration-300 ease-out ${
+          className={`absolute w-11 transition-all duration-300 ease-out ${
             open ? "scale-0 opacity-0" : "scale-100 opacity-100"
           }`}
         />
