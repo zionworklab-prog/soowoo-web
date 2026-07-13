@@ -1,6 +1,6 @@
 import { CATEGORY_ORDER, getDrinksByCategory } from "@/lib/drinks";
 import { OrderDisclaimer } from "@/components/OrderDisclaimer";
-import { DrinkIndexRow } from "@/components/DrinkIndexRow";
+import { MenuBrowser } from "@/components/MenuBrowser";
 
 export const revalidate = 3600;
 
@@ -14,22 +14,7 @@ export default async function MenuPage() {
         <OrderDisclaimer />
       </div>
 
-      {CATEGORY_ORDER.map((category) => {
-        const drinks = grouped[category];
-        if (drinks.length === 0) return null;
-        return (
-          <section key={category} className="flex flex-col gap-2">
-            <h2 className="font-mono text-xs text-ink/50">
-              {category}
-            </h2>
-            <div>
-              {drinks.map((drink, i) => (
-                <DrinkIndexRow key={drink.slug} drink={drink} index={i} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+      <MenuBrowser grouped={grouped} categoryOrder={CATEGORY_ORDER} />
     </div>
   );
 }

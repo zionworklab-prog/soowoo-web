@@ -28,10 +28,3 @@ export async function getDrinksByCategory(): Promise<
   }
   return grouped;
 }
-
-export async function getDrinkBySlug(slug: string): Promise<Drink | undefined> {
-  const drinks = await getAllDrinks();
-  // 동적 라우트 params가 percent-encoding된 채로 들어오는 경우가 있어 디코딩 후 비교한다.
-  const decoded = decodeURIComponent(slug);
-  return drinks.find((d) => d.slug === decoded);
-}
