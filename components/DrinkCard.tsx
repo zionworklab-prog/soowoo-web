@@ -58,9 +58,9 @@ export function DrinkCard({
         {drink.name}
       </span>
       {drink.description && (
-        <span className="line-clamp-1 text-caption text-muted">{drink.description}</span>
+        <span className="mt-0.5 line-clamp-1 text-[10px] text-muted">{drink.description}</span>
       )}
-      <span className="mt-2 text-caption text-muted sm:text-body-small">
+      <span className="mt-3 text-caption text-muted sm:text-body-small">
         {drink.priceSummary}
         {drink.soldOut ? " · 품절" : ""}
       </span>
