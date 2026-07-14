@@ -28,7 +28,11 @@ export function DrinkDetailContent({ drink }: { drink: Drink }) {
 
   return (
     <div className="flex w-full flex-col gap-6 bg-canvas text-ink">
-      <DrinkImagePlaceholder imageUrl={drink.imageUrl} className="aspect-square w-full" />
+      <DrinkImagePlaceholder
+        imageUrl={drink.imageUrl}
+        sizes="(min-width: 512px) 512px, 100vw"
+        className="aspect-square w-full"
+      />
 
       <div className="flex flex-col px-6 pb-10 sm:px-8">
         <div className="flex flex-col gap-1">
@@ -36,7 +40,7 @@ export function DrinkDetailContent({ drink }: { drink: Drink }) {
             {meta}
             {drink.soldOut ? " · 품절" : ""}
           </p>
-          <h1 className="text-section text-ink">{drink.name}</h1>
+          <h1 className="break-keep text-section text-ink">{drink.name}</h1>
           {drink.description && (
             <p className="text-body text-muted">{drink.description}</p>
           )}

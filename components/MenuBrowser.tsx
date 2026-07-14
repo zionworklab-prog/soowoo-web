@@ -52,13 +52,24 @@ export function MenuBrowser({
 
       <div className="flex items-center justify-between">
         <div className="flex flex-wrap gap-5">
+          <button
+            type="button"
+            onClick={() => setFilter(null)}
+            className={`border-b pb-0.5 text-body-small tracking-[0.02em] transition-colors ${
+              filter === null
+                ? "border-ink text-ink"
+                : "border-transparent text-muted hover:text-ink"
+            }`}
+          >
+            전체
+          </button>
           {categoryOrder.map((category) => {
             const active = filter === category;
             return (
               <button
                 key={category}
                 type="button"
-                onClick={() => setFilter(active ? null : category)}
+                onClick={() => setFilter(category)}
                 className={`border-b pb-0.5 text-body-small tracking-[0.02em] transition-colors ${
                   active
                     ? "border-ink text-ink"

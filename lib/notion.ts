@@ -166,8 +166,8 @@ function extractPrice(page: PageObjectResponse): string | undefined {
     onSale: readonly string[];
     price: readonly string[];
   }> = [
-    { label: "잔", onSale: FIELD_CANDIDATES.glassOnSale, price: FIELD_CANDIDATES.glassPrice },
     { label: "병", onSale: FIELD_CANDIDATES.bottleOnSale, price: FIELD_CANDIDATES.bottlePrice },
+    { label: "잔", onSale: FIELD_CANDIDATES.glassOnSale, price: FIELD_CANDIDATES.glassPrice },
     { label: "도쿠리", onSale: FIELD_CANDIDATES.tokkuriOnSale, price: FIELD_CANDIDATES.tokkuriPrice },
   ];
   const parts: string[] = [];
