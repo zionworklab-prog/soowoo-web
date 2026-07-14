@@ -19,4 +19,5 @@ export interface Drink {
   imageUrl?: string;
   soldOut?: boolean;
   featured?: boolean;
+  limitedEdition?: boolean;
 }

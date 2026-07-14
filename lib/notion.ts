@@ -82,6 +82,7 @@ const FIELD_CANDIDATES = {
   visible: ["노출"],
   soldOut: ["품절"],
   featured: ["추천메뉴"],
+  limitedEdition: ["한정주"],
   glassOnSale: ["잔 판매"],
   glassPrice: ["잔 가격"],
   bottleOnSale: ["병 판매"],
@@ -262,6 +263,7 @@ function pageToDrink(page: PageObjectResponse, index: number): Drink | null {
     imageUrl: propertyToImageUrl(prop(page, FIELD_CANDIDATES.image)),
     soldOut: propertyToBoolean(prop(page, FIELD_CANDIDATES.soldOut)),
     featured: propertyToBoolean(prop(page, FIELD_CANDIDATES.featured)),
+    limitedEdition: propertyToBoolean(prop(page, FIELD_CANDIDATES.limitedEdition)),
   };
 }
 

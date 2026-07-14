@@ -81,6 +81,7 @@ const raw: Omit<Drink, "slug">[] = [
     tastingNotes: "단맛은 짧고 산미는 또렷해 기름진 안주와 추천",
     pairing: "기름진 안주",
     sortOrder: 8,
+    limitedEdition: true,
   },
   {
     name: "니토 준마이 반자이 70 나마자케",

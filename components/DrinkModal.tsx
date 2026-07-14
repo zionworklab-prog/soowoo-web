@@ -4,9 +4,16 @@ import { useEffect } from "react";
 import type { Drink } from "@/lib/types";
 import { DrinkDetailContent } from "@/components/DrinkDetailContent";
 
-function CloseIcon() {
+function CloseIcon({ className = "" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" width={13} height={13} fill="none" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      width={15}
+      height={15}
+      fill="none"
+      aria-hidden="true"
+      className={className}
+    >
       <path
         d="M6 6L18 18M18 6L6 18"
         stroke="currentColor"
@@ -56,9 +63,10 @@ export function DrinkModal({
           type="button"
           onClick={onClose}
           aria-label="닫기"
-          className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-[2px] border border-hairline bg-canvas text-ink hover:bg-surface"
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center text-[#bebebe]/70 transition-colors hover:text-[#bebebe]"
         >
-          <CloseIcon />
+          {/* 옅은 그림자는 밝은 사진 배경 위에서 X가 묻히지 않게 하는 최소한의 대비 장치 */}
+          <CloseIcon className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.3)]" />
         </button>
         <DrinkDetailContent drink={drink} />
       </div>

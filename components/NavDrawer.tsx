@@ -8,6 +8,7 @@ import Image from "next/image";
 const NAV_ITEMS = [
   { href: "/", label: "홈" },
   { href: "/menu", label: "주류" },
+  { href: "/location", label: "위치" },
 ];
 
 function CloseIcon({ className = "" }: { className?: string }) {

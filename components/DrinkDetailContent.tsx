@@ -4,10 +4,10 @@ import { DrinkImagePlaceholder } from "@/components/DrinkImagePlaceholder";
 function Line({ label, value }: { label: string; value?: string }) {
   if (!value) return null;
   return (
-    <div className="flex gap-1.5">
-      <dt className="w-[3.25rem] shrink-0 text-body-small text-muted">{label}</dt>
+    <>
+      <dt className="text-body-small text-muted">{label}</dt>
       <dd className="text-body-small text-ink">{value}</dd>
-    </div>
+    </>
   );
 }
 
@@ -34,7 +34,8 @@ export function DrinkDetailContent({ drink }: { drink: Drink }) {
 
         <hr className="my-4 border-t border-hairline" />
 
-        <dl className="flex flex-col gap-1.5">
+        {/* 라벨 열은 실제로 표시되는 가장 긴 라벨 폭에만 맞춰져 값과의 간격이 최소로 유지된다. */}
+        <dl className="grid grid-cols-[max-content_1fr] gap-x-2 gap-y-1.5">
           <Line label="가격" value={drink.price} />
           <Line label="도수" value={drink.abv} />
           <Line label="지역" value={drink.region} />
@@ -46,14 +47,14 @@ export function DrinkDetailContent({ drink }: { drink: Drink }) {
         {drink.tastingNotes && (
           <div className="mt-8 flex flex-col gap-1">
             <p className="text-caption text-muted">테이스팅 노트</p>
-            <p className="text-body text-ink">{drink.tastingNotes}</p>
+            <p className="text-body leading-[1.7] text-ink">{drink.tastingNotes}</p>
           </div>
         )}
 
         {drink.pairing && (
           <div className="mt-6 flex flex-col gap-1">
             <p className="text-caption text-muted">추천 페어링</p>
-            <p className="text-body text-ink">{drink.pairing}</p>
+            <p className="text-body leading-[1.7] text-ink">{drink.pairing}</p>
           </div>
         )}
       </div>

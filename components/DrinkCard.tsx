@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import type { Drink } from "@/lib/types";
 import { DrinkImagePlaceholder } from "@/components/DrinkImagePlaceholder";
 
@@ -8,16 +11,48 @@ export function DrinkCard({
   drink: Drink;
   onSelect: (drink: Drink) => void;
 }) {
+  const ref = useRef<HTMLButtonElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  // 스크롤로 카드가 뷰포트에 들어올 때 서서히 떠오르듯 나타나는 인터랙션.
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <button
+      ref={ref}
       type="button"
       onClick={() => onSelect(drink)}
-      className={`group flex flex-col text-left ${drink.soldOut ? "opacity-50" : ""}`}
+      className={`group flex flex-col text-left transition-all duration-700 ease-out motion-reduce:transition-none ${
+        visible
+          ? `translate-y-0 ${drink.soldOut ? "opacity-50" : "opacity-100"}`
+          : "translate-y-3 opacity-0 motion-reduce:translate-y-0 motion-reduce:opacity-100"
+      }`}
     >
-      <DrinkImagePlaceholder
-        imageUrl={drink.imageUrl}
-        className="relative aspect-[3/4] w-full overflow-hidden"
-      />
+      <div className="relative">
+        <DrinkImagePlaceholder
+          imageUrl={drink.imageUrl}
+          className="aspect-[3/4] w-full overflow-hidden"
+        />
+        {drink.limitedEdition && (
+          <span className="absolute left-1.5 top-1.5 border border-brand/20 bg-canvas/90 px-1.5 py-0.5 text-[10px] tracking-[0.02em] text-brand">
+            여름 한정주
+          </span>
+        )}
+      </div>
       <span className="mt-3 text-body-small text-ink group-hover:underline sm:text-subheading">
         {drink.name}
       </span>
