@@ -16,6 +16,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font -- App Router 루트 레이아웃은 pages/_document와
+            달리 모든 라우트에 공통 적용되므로 "단일 페이지에만 로드된다"는 규칙 취지가 적용되지 않는다. */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500&display=swap"
+        />
+      </head>
       <body className="flex min-h-full flex-col bg-canvas text-ink">
         <SiteHeader />
         <main className="flex flex-1 flex-col">{children}</main>

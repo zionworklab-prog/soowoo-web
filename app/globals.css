@@ -39,6 +39,8 @@
 
   --font-sans: "MaruBuri", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "MaruBuri", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* 마루부리는 한자 글리프를 지원하지 않아, 한자 표기에만 별도로 사용한다. */
+  --font-serif-kr: "Noto Serif KR", serif;
 
   /* brand_system 타이포 스케일 — 레퍼런스(Cargo 카탈로그)에 맞춰 전체적으로 축소 */
   --text-page-title: 1.25rem;
@@ -60,10 +62,13 @@
   --text-button: 0.75rem;
   --text-button--line-height: 1;
 
-  /* 홈 랜딩 진입 애니메이션 (그래픽이 살짝 떠오르며 페이드인).
+  /* 홈 랜딩 진입 애니메이션 — 위에서 아래로 순차적으로 떠오르며 페이드인.
      Tailwind v4는 --animate-* 토큰으로 등록해야 최종 번들에서 @keyframes가 유지된다. */
-  --animate-fade-rise-in: fade-rise-in 0.9s ease-out 0.1s both;
-  --animate-fade-rise-in-delayed: fade-rise-in 0.9s ease-out 0.35s both;
+  --animate-fade-rise-in-1: fade-rise-in 0.8s ease-out 0.1s both;
+  --animate-fade-rise-in-2: fade-rise-in 0.8s ease-out 0.25s both;
+  --animate-fade-rise-in-3: fade-rise-in 0.8s ease-out 0.4s both;
+  --animate-fade-rise-in-4: fade-rise-in 0.9s ease-out 0.6s both;
+  --animate-fade-rise-in-5: fade-rise-in 0.9s ease-out 0.85s both;
 }
 
 @keyframes fade-rise-in {
