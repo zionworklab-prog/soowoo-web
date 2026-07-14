@@ -19,7 +19,7 @@ export default function LocationPage() {
           href={NAVER_MAP_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="w-fit text-body-small text-muted underline underline-offset-2 hover:text-ink"
+          className="w-fit bg-ink px-5 py-2 text-button tracking-[0.04em] text-white transition-colors hover:bg-black"
         >
           네이버 지도에서 보기 ↗
         </a>

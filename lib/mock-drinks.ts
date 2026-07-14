@@ -2,34 +2,8 @@ import type { Drink } from "./types";
 import { slugify } from "./slugify";
 
 // Notion 연동 전 미리보기 및 개발용 목 데이터.
-// drink_menu 원본 중 사케 / 소츄 / 전통주 항목만 옮겨왔다 (잔음료, 리큐어 제외).
+// drink_menu 원본 중 사케 / 고구마 소츄 / 보리 소츄 항목만 옮겨왔다 (잔음료, 리큐어, 전통주 제외).
 const raw: Omit<Drink, "slug">[] = [
-  // 전통주
-  {
-    name: "동해 소주",
-    category: "전통주",
-    abv: "17.5도",
-    price: "8,000원",
-    description: "군더더기 없이 소주다운 소주",
-    sortOrder: 0,
-  },
-  {
-    name: "황금 보리",
-    category: "전통주",
-    abv: "17도",
-    price: "13,000원",
-    description: "약간의 단맛이 부드럽게 넘어가 부담없이 마시기 좋은",
-    sortOrder: 1,
-  },
-  {
-    name: "고흥 유자주",
-    category: "전통주",
-    abv: "8도",
-    price: "24,000원",
-    description: "전남 고흥의 유자를 담아 상큼함. 낮은 도수로 술보다 음료에 가까운 기분.",
-    sortOrder: 2,
-  },
-
   // 사케 - 잔 (90ml 잔 / 270ml 도쿠리)
   {
     name: "카와츠루 사누키 클라우디",
@@ -204,69 +178,69 @@ const raw: Omit<Drink, "slug">[] = [
     sortOrder: 21,
   },
 
-  // 소츄 - 고구마
+  // 고구마 소츄
   {
     name: "세키토바",
-    category: "소츄",
-    type: "고구마",
+    category: "고구마 소츄",
+    type: "고구마소츄",
     price: "10,000원",
     description: "고구마 소츄의 모범생 같은 한 잔",
     sortOrder: 22,
   },
   {
     name: "세키토바 무라사키",
-    category: "소츄",
-    type: "고구마 (자색고구마)",
+    category: "고구마 소츄",
+    type: "고구마소츄 (자색고구마)",
     price: "10,000원",
     description: "잘 익은 고구마 같은 달큰함",
     sortOrder: 23,
   },
   {
-    name: "세키토바 말차",
-    category: "소츄",
-    type: "고구마",
-    price: "12,000원",
-    description: "고구마 단맛 뒤로 말차 특유의 쌉싸름하고 맑은 향",
-    sortOrder: 24,
-  },
-  {
     name: "다이야메",
-    category: "소츄",
-    type: "고구마",
+    category: "고구마 소츄",
+    type: "고구마소츄",
     price: "8,000원 / 900ml 80,000원",
     description: "고구마소츄 특유의 무거움보단 맑고 리치한",
     sortOrder: 25,
   },
   {
+    name: "세키토바 말차",
+    category: "고구마 소츄",
+    type: "말차소츄",
+    price: "12,000원",
+    description: "고구마 단맛 뒤로 말차 특유의 쌉싸름하고 맑은 향",
+    sortOrder: 24,
+  },
+  {
     name: "아카루이노우손 야부키타",
-    category: "소츄",
-    type: "고구마",
+    category: "고구마 소츄",
+    type: "말차소츄",
     price: "9,000원 / 720ml 90,000원",
     description: "햇살 드는 시골 마을에 말차 밭이 떠오르는 정겨운 고구마소츄",
     sortOrder: 26,
   },
 
-  // 소츄 - 보리
+  // 보리 소츄
   {
     name: "무기시루",
-    category: "소츄",
-    type: "보리",
+    category: "보리 소츄",
+    type: "보리소츄",
     price: "8,000원",
     description: "우유에 말아먹는 조리퐁처럼 꼬소한",
     sortOrder: 27,
   },
   {
     name: "아카 엔마",
-    category: "소츄",
-    type: "보리",
+    category: "보리 소츄",
+    type: "보리소츄",
     price: "8,000원 / 720ml 80,000원",
     description: "맑고 반듯하게 떨어지는 보리소츄",
     sortOrder: 28,
   },
   {
     name: "백년의고독",
-    category: "소츄",
-    type: "보리",
+    category: "보리 소츄",
+    type: "보리소츄",
     abv: "40도",
     price: "720ml 210,000원",
     description: "떡갈나무(오크통)에 숙성해 100년의 전통이 느껴지는",
@@ -274,8 +248,15 @@ const raw: Omit<Drink, "slug">[] = [
   },
 ];
 
+function firstNumber(text?: string): number | undefined {
+  if (!text) return undefined;
+  const match = text.replace(/,/g, "").match(/(\d+)/);
+  return match ? Number(match[1]) : undefined;
+}
+
 export const mockDrinks: Drink[] = raw.map((d, i) => ({
   ...d,
   slug: `${slugify(d.name)}-${i}`,
   priceSummary: d.price,
+  priceValue: firstNumber(d.price),
 }));

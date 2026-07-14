@@ -202,6 +202,21 @@ function extractPriceSummary(page: PageObjectResponse): string | undefined {
   return parts.length ? parts.join(" · ") : undefined;
 }
 
+// 가격순 정렬용 대표 숫자 값 (병 > 잔 우선순위는 extractPriceSummary와 동일하게 맞춘다).
+function extractPriceValue(page: PageObjectResponse): number | undefined {
+  const options: Array<{ onSale: readonly string[]; price: readonly string[] }> = [
+    { onSale: FIELD_CANDIDATES.bottleOnSale, price: FIELD_CANDIDATES.bottlePrice },
+    { onSale: FIELD_CANDIDATES.glassOnSale, price: FIELD_CANDIDATES.glassPrice },
+    { onSale: FIELD_CANDIDATES.tokkuriOnSale, price: FIELD_CANDIDATES.tokkuriPrice },
+  ];
+  for (const option of options) {
+    const onSale = propertyToBoolean(prop(page, option.onSale));
+    const price = propertyToNumber(prop(page, option.price));
+    if (onSale && price != null) return price;
+  }
+  return undefined;
+}
+
 // 숫자형 "주도"가 있으면 우선 사용(+/- 부호를 붙여 일본주도 표기 관례를 따른다),
 // 없으면 텍스트형 "주도(日本酒度)"를 그대로 쓴다.
 function extractSakeDegree(page: PageObjectResponse): string | undefined {
@@ -221,11 +236,14 @@ function extractRiceMilling(page: PageObjectResponse): string | undefined {
   return num != null ? `${num}%` : undefined;
 }
 
-// Notion "종류" 값(예: "고구마소츄", "보리소츄")을 사이트 상단 카테고리로 합친다.
+// Notion "종류" 값을 사이트 상단 카테고리로 합친다.
+// "말차소츄"도 "고구마 소츄" 카테고리에 포함하되, 목록에서는 고구마소츄 항목이 먼저,
+// 말차소츄 항목이 뒤에 오도록 lib/drinks.ts에서 종류(rawCategory) 기준으로 다시 정렬한다.
+// 전통주는 더 이상 노출하지 않는다 (일치하는 분기가 없으면 자동으로 제외됨).
 function mapToTopCategory(rawCategory: string): DrinkCategory | null {
-  if (rawCategory.includes("소주") || rawCategory.includes("소츄")) return "소츄";
+  if (rawCategory.includes("고구마") || rawCategory.includes("말차")) return "고구마 소츄";
+  if (rawCategory.includes("보리")) return "보리 소츄";
   if (rawCategory.includes("사케")) return "사케";
-  if (rawCategory.includes("전통주")) return "전통주";
   return null;
 }
 
@@ -256,6 +274,7 @@ function pageToDrink(page: PageObjectResponse, index: number): Drink | null {
     riceMilling: extractRiceMilling(page),
     price: extractPrice(page),
     priceSummary: extractPriceSummary(page),
+    priceValue: extractPriceValue(page),
     description: propertyToText(prop(page, FIELD_CANDIDATES.description)) || undefined,
     tastingNotes: propertyToText(prop(page, FIELD_CANDIDATES.tastingNotes)) || undefined,
     pairing: propertyToText(prop(page, FIELD_CANDIDATES.pairing)) || undefined,

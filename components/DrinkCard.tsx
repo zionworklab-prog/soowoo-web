@@ -45,7 +45,7 @@ export function DrinkCard({
       <div className="relative">
         <DrinkImagePlaceholder
           imageUrl={drink.imageUrl}
-          className="aspect-[3/4] w-full overflow-hidden"
+          className="aspect-square w-full overflow-hidden"
         />
         {drink.limitedEdition && (
           <span className="absolute left-1.5 top-1.5 border border-brand/20 bg-canvas/90 px-1.5 py-0.5 text-[10px] tracking-[0.02em] text-brand">
@@ -56,6 +56,9 @@ export function DrinkCard({
       <span className="mt-3 text-body-small text-ink group-hover:underline sm:text-subheading">
         {drink.name}
       </span>
+      {drink.description && (
+        <span className="mt-0.5 line-clamp-1 text-caption text-muted">{drink.description}</span>
+      )}
       <span className="mt-0.5 text-caption text-muted sm:text-body-small">
         {drink.priceSummary}
         {drink.soldOut ? " · 품절" : ""}
