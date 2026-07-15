@@ -2,6 +2,8 @@
 
 // Notion(S3) 이미지는 원본이 수 MB라 Next 내장 최적화 서버의 업스트림 7초 제한에
 // 걸리기 쉽다. 대신 시간 제한 없이 받아 디스크에 캐시하는 자체 라우트(/api/img)로 보낸다.
+// src에는 실제 URL이 아니라 Notion 페이지 id(imageRef)가 들어오며,
+// /api/img가 요청 시점에 항상 새로 서명된 URL을 받아와 만료 문제를 피한다.
 export default function imageLoader({
   src,
   width,
@@ -15,5 +17,5 @@ export default function imageLoader({
   if (src.startsWith("/")) {
     return src;
   }
-  return `/api/img?src=${encodeURIComponent(src)}&w=${width}&q=${quality ?? 75}`;
+  return `/api/img?ref=${encodeURIComponent(src)}&w=${width}&q=${quality ?? 75}`;
 }

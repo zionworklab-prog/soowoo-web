@@ -44,7 +44,7 @@ export function DrinkCard({
     >
       <div className="relative">
         <DrinkImagePlaceholder
-          imageUrl={drink.imageUrl}
+          imageRef={drink.imageRef}
           sizes="(min-width: 1180px) 380px, (min-width: 640px) 33vw, 50vw"
           className="aspect-square w-full overflow-hidden"
         />

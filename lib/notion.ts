@@ -279,7 +279,7 @@ function pageToDrink(page: PageObjectResponse, index: number): Drink | null {
     tastingNotes: propertyToText(prop(page, FIELD_CANDIDATES.tastingNotes)) || undefined,
     pairing: propertyToText(prop(page, FIELD_CANDIDATES.pairing)) || undefined,
     sortOrder,
-    imageUrl: propertyToImageUrl(prop(page, FIELD_CANDIDATES.image)),
+    imageRef: propertyToImageUrl(prop(page, FIELD_CANDIDATES.image)) ? page.id : undefined,
     soldOut: propertyToBoolean(prop(page, FIELD_CANDIDATES.soldOut)),
     featured: propertyToBoolean(prop(page, FIELD_CANDIDATES.featured)),
     limitedEdition: propertyToBoolean(prop(page, FIELD_CANDIDATES.limitedEdition)),
@@ -300,4 +300,19 @@ export const getNotionDrinks = unstable_cache(
   fetchDrinksFromNotion,
   ["soowoo-drinks"],
   { revalidate: 3600, tags: ["drinks"] }
+);
+
+async function fetchDrinkImageUrl(pageId: string): Promise<string | undefined> {
+  const client = getClient();
+  const page = await client.pages.retrieve({ page_id: pageId });
+  if (!("properties" in page)) return undefined;
+  return propertyToImageUrl(prop(page as PageObjectResponse, FIELD_CANDIDATES.image));
+}
+
+// 이미지 서명 URL은 1시간 만료라, 술 목록(1시간 캐시)보다 훨씬 짧게 캐시해
+// /api/img가 항상 유효기간이 넉넉히 남은 URL로 원본을 받아오도록 한다.
+export const resolveDrinkImageUrl = unstable_cache(
+  fetchDrinkImageUrl,
+  ["soowoo-drink-image"],
+  { revalidate: 300, tags: ["drink-image"] }
 );

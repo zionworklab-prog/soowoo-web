@@ -1,18 +1,18 @@
 import Image from "next/image";
 
 export function DrinkImagePlaceholder({
-  imageUrl,
+  imageRef,
   sizes,
   className = "",
 }: {
-  imageUrl?: string;
+  imageRef?: string;
   sizes?: string;
   className?: string;
 }) {
-  if (imageUrl) {
+  if (imageRef) {
     return (
       <div className={`relative overflow-hidden bg-surface ${className}`}>
-        <Image src={imageUrl} alt="" fill sizes={sizes} className="object-cover" />
+        <Image src={imageRef} alt="" fill sizes={sizes} className="object-cover" />
       </div>
     );
   }

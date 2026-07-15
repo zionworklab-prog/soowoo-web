@@ -29,7 +29,7 @@ export function DrinkDetailContent({ drink }: { drink: Drink }) {
   return (
     <div className="flex w-full flex-col gap-6 bg-canvas text-ink">
       <DrinkImagePlaceholder
-        imageUrl={drink.imageUrl}
+        imageRef={drink.imageRef}
         sizes="(min-width: 512px) 512px, 100vw"
         className="aspect-square w-full"
       />
