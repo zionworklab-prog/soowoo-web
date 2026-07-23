@@ -4,6 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import type { Drink } from "@/lib/types";
 import { DrinkImagePlaceholder } from "@/components/DrinkImagePlaceholder";
 
+// 텍스트 글자(›)는 폰트에 따라 세로 중심이 미묘하게 어긋나 보여서,
+// 항상 정확히 가운데 오도록 SVG로 그린다.
+function ChevronIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" width={12} height={12} fill="none" aria-hidden="true" className={className}>
+      <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function DrinkCard({
   drink,
   onSelect,
@@ -54,11 +64,14 @@ export function DrinkCard({
           </span>
         )}
       </div>
-      <span className="mt-3 break-keep text-body-small text-ink group-hover:underline sm:text-subheading">
-        {drink.name}
+      <span className="mt-3 flex items-center gap-1">
+        <span className="min-w-0 truncate text-body-small text-ink group-hover:underline sm:text-subheading">
+          {drink.name}
+        </span>
+        <ChevronIcon className="shrink-0 text-muted" />
       </span>
       {drink.description && (
-        <span className="mt-0.5 line-clamp-1 text-[10px] text-muted">{drink.description}</span>
+        <span className="mt-0.5 line-clamp-2 text-[10px] text-muted">{drink.description}</span>
       )}
       <span className="mt-3 text-caption text-muted sm:text-body-small">
         {drink.priceSummary}
