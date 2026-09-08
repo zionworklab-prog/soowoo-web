@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 // 화면에는 읽기 편한 띄어쓰기로 보여주되, 지도 검색은 공식 도로명 표기가 더 정확하다.
-const ADDRESS = "경기 시흥시 서울대학로 278번길 70 1층 제에이 114호";
+const ADDRESS = "경기 시흥시 서울대학로 278번길 70 1층 A동 114호";
 const MAP_QUERY = "경기 시흥시 서울대학로278번길 70";
 const NAVER_MAP_URL =
   "https://map.naver.com/p/search/%EC%88%98%EC%9A%B0/place/2071114655?placePath=/home?bk_query=%EC%88%98%EC%9A%B0&entry=pll&from=map&fromNxList=true&fromPanelNum=2&timestamp=202607140547&locale=ko&svcName=map_pcv5&searchText=%EC%88%98%EC%9A%B0&searchType=place&c=15.00,0,0,0,dh";

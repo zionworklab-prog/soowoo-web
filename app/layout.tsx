@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteSidebar } from "@/components/SiteSidebar";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
@@ -26,10 +27,13 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500&display=swap"
         />
       </head>
-      <body className="flex min-h-full flex-col bg-canvas text-ink">
+      <body className="flex min-h-full flex-col bg-canvas text-ink md:flex-row">
         <SiteHeader />
-        <main className="flex flex-1 flex-col">{children}</main>
-        <SiteFooter />
+        <SiteSidebar />
+        <div className="flex min-h-full flex-1 flex-col">
+          <main className="flex flex-1 flex-col">{children}</main>
+          <SiteFooter />
+        </div>
       </body>
     </html>
   );
