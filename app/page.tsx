@@ -2,17 +2,17 @@ import { BirdIconRow } from "@/components/BirdIconRow";
 import { PhotoRow } from "@/components/PhotoRow";
 
 const PHOTOS_GROUP_1 = [
-  { src: "/onboarding/photo-00.webp", width: 702, height: 479 },
-  { src: "/onboarding/photo-01.webp", width: 702, height: 440 },
-  { src: "/onboarding/photo-02.webp", width: 702, height: 468 },
-  { src: "/onboarding/photo-03.webp", width: 702, height: 1053 },
-  { src: "/onboarding/photo-04.webp", width: 702, height: 468 },
+  { src: "/onboarding/photo-00.webp", width: 1400, height: 955 },
+  { src: "/onboarding/photo-01.webp", width: 1400, height: 878 },
+  { src: "/onboarding/photo-02.webp", width: 1400, height: 934 },
+  { src: "/onboarding/photo-03.webp", width: 1400, height: 2100 },
+  { src: "/onboarding/photo-04.webp", width: 1400, height: 933 },
 ];
 
 const PHOTOS_GROUP_2 = [
-  { src: "/onboarding/photo-05.webp", width: 702, height: 468 },
-  { src: "/onboarding/photo-06.webp", width: 702, height: 968 },
-  { src: "/onboarding/photo-07.webp", width: 702, height: 468 },
+  { src: "/onboarding/photo-05.webp", width: 1400, height: 933 },
+  { src: "/onboarding/photo-06.webp", width: 1400, height: 1931 },
+  { src: "/onboarding/photo-07.webp", width: 1400, height: 933 },
 ];
 
 export default function Home() {
