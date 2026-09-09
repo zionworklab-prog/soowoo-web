@@ -2,10 +2,10 @@ import { BirdIconRow } from "@/components/BirdIconRow";
 import { PhotoRow } from "@/components/PhotoRow";
 
 const PHOTOS_GROUP_1 = [
-  { src: "/onboarding/photo-00.webp", width: 702, height: 467 },
+  { src: "/onboarding/photo-00.webp", width: 702, height: 479 },
   { src: "/onboarding/photo-01.webp", width: 702, height: 440 },
-  { src: "/onboarding/photo-02.webp", width: 702, height: 470 },
-  { src: "/onboarding/photo-03.webp", width: 702, height: 1052 },
+  { src: "/onboarding/photo-02.webp", width: 702, height: 468 },
+  { src: "/onboarding/photo-03.webp", width: 702, height: 1053 },
   { src: "/onboarding/photo-04.webp", width: 702, height: 468 },
 ];
 
