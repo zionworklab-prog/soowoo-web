@@ -8,6 +8,11 @@ import { resolveDrinkImageUrl } from "@/lib/notion";
 // Notion이 파일을 올려두는 S3 버킷만 허용한다 (임의 URL 프록시 방지).
 const ALLOWED_HOST = "prod-files-secure.s3.us-west-2.amazonaws.com";
 
+// 콜드 스타트 직후 디스크 캐시가 비어있으면 한 페이지의 이미지 여러 개가 동시에
+// 노션 조회 + S3 다운로드 + sharp 리사이즈를 각각 수행하게 되어 기본 제한
+// 시간(플랫폼 기본값)을 넘기기 쉽다. 여유를 더 준다.
+export const maxDuration = 30;
+
 const CACHE_DIR = path.join(os.tmpdir(), "soowoo-image-cache");
 
 function cacheKey(ref: string): string {
@@ -58,7 +63,15 @@ export async function GET(request: Request) {
   if (!original) {
     // 노션 파일 서명 URL은 1시간 만료라, 요청 시점마다 새로 서명된 URL을 받아온다
     // (단, 이 조회 자체는 5분간 캐시되어 매 요청마다 노션 API를 부르지 않는다).
-    const freshUrl = await resolveDrinkImageUrl(ref);
+    // 콜드 스타트 직후 캐시가 비어있으면 여러 이미지가 동시에 노션 API를 부르게
+    // 되는데, 이 호출이 실패/지연될 때 처리되지 않은 예외로 500이 나던 것을
+    // try/catch로 감싸 깨끗한 502로 바꾼다.
+    let freshUrl: string | undefined;
+    try {
+      freshUrl = await resolveDrinkImageUrl(ref);
+    } catch {
+      return new Response("failed to resolve image url", { status: 502 });
+    }
     if (!freshUrl) {
       return new Response("image not found", { status: 404 });
     }
@@ -72,7 +85,15 @@ export async function GET(request: Request) {
       return new Response("upstream host not allowed", { status: 502 });
     }
 
-    const upstream = await fetch(srcUrl);
+    let upstream: Response;
+    try {
+      // 타임아웃 없이 두면 S3 응답이 늦어질 때 플랫폼 함수 제한 시간까지
+      // 요청이 걸려있다가 그대로 죽어버려서(클라이언트엔 아무 응답도 못 감),
+      // 그보다 먼저 끊어서 최소한 502로 실패하게 한다.
+      upstream = await fetch(srcUrl, { signal: AbortSignal.timeout(8000) });
+    } catch {
+      return new Response("upstream fetch failed", { status: 502 });
+    }
     if (!upstream.ok) {
       return new Response("upstream fetch failed", { status: 502 });
     }
