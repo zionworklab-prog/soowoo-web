@@ -53,7 +53,6 @@ export function BirdIconRow() {
   // 요소(문단)를 yProgress에 맞춰 transform으로 끌어올려서, 다 펼쳐졌을 때 문단이
   // 훨씬 가까워 보이게 한다.
   const gridHeightsRef = useRef({ stacked: 0, collapsed: 0 });
-  const ticking = useRef(false);
   // 스크롤 애니메이션에 필요한 여유 공간(PIN_HEIGHT)을 처음부터 예약해두면 페이지
   // 진입 직후(스크롤 0) 새 아래에 빈 여백이 그대로 보인다. 이 섹션이 페이지 맨 위,
   // 첫 화면 안에 있어서 "화면 밖에 있을 때 미리 펼쳐두기"도, "스크롤 시작 시점에
@@ -149,26 +148,28 @@ export function BirdIconRow() {
         const y = icon.yStart * (1 - yProgress);
         el.style.transform = `translate(${x}px, ${y}px)`;
       });
-      ticking.current = false;
     };
 
-    const handleScroll = () => {
-      if (!ticking.current) {
-        ticking.current = true;
-        requestAnimationFrame(applyProgress);
-      }
+    // iOS Safari는 터치 스크롤(관성 스크롤) 중에 'scroll' 이벤트를 데스크탑
+    // 휠 스크롤보다 훨씬 드문드문 보낸다 — 이벤트가 올 때만 한 프레임 갱신하는
+    // 방식(예전 handleScroll)으로는 그 사이 구간이 듬성듬성 건너뛰어져 뚝뚝
+    // 끊기는 것처럼 보인다. 대신 스크롤 이벤트와 무관하게 매 프레임 계속
+    // scrollY를 읽는 루프를 돌려서, 실제 스크롤 위치를 프레임마다 그대로
+    // 따라가게 한다.
+    let rafId: number;
+    const loop = () => {
+      applyProgress();
+      rafId = requestAnimationFrame(loop);
     };
     const handleResize = () => {
       measureStartX();
       measureGridHeights();
-      applyProgress();
     };
 
-    applyProgress();
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    loop();
     window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(rafId);
       window.removeEventListener("resize", handleResize);
     };
   }, []);
