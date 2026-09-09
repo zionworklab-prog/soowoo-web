@@ -53,6 +53,17 @@ export function BirdIconRow() {
   // 요소(문단)를 yProgress에 맞춰 transform으로 끌어올려서, 다 펼쳐졌을 때 문단이
   // 훨씬 가까워 보이게 한다.
   const gridHeightsRef = useRef({ stacked: 0, collapsed: 0 });
+  // pin의 문서 기준 top 좌표(스크롤 0일 때). 매 프레임 getBoundingClientRect()로
+  // 다시 재는 대신, 이 값에서 window.scrollY만 빼서 pinTop을 구한다 —
+  // getBoundingClientRect()는 강제 동기 레이아웃(reflow)을 유발해서, 애니메이션
+  // 프레임마다 부르면(특히 이 섹션을 완전히 지나친 뒤에도 계속) 메인 스레드
+  // 부담이 커진다. 아이폰 실기기에서 rAF 루프로 바꾼 뒤에도 여전히 스크롤이
+  // 끊겨 보인 게 이 매 프레임 레이아웃 강제 때문으로 보인다.
+  const pinDocTopRef = useRef(0);
+  const lastHeightRef = useRef(-1);
+  // sticky의 "포개진" 상태 자연 높이(offsetHeight)도 스크롤 중엔 바뀌지 않는
+  // 값이라 매 프레임 다시 읽을 필요가 없다 — 위와 같은 이유로 한 번만 잰다.
+  const naturalHeightRef = useRef(0);
   // 스크롤 애니메이션에 필요한 여유 공간(PIN_HEIGHT)을 처음부터 예약해두면 페이지
   // 진입 직후(스크롤 0) 새 아래에 빈 여백이 그대로 보인다. 이 섹션이 페이지 맨 위,
   // 첫 화면 안에 있어서 "화면 밖에 있을 때 미리 펼쳐두기"도, "스크롤 시작 시점에
@@ -86,6 +97,19 @@ export function BirdIconRow() {
       gridHeightsRef.current = { stacked, collapsed };
     }
 
+    // pin 자신의 높이(pin.style.height)를 바꿔도 pin의 top 좌표 자체는 바뀌지
+    // 않는다(자기 높이는 자기보다 아래쪽 요소에만 영향을 준다) — 그래서 이 값은
+    // 한 번만 재도 스크롤 중 계속 유효하다.
+    function measurePinDocTop() {
+      const pin = pinRef.current;
+      if (!pin) return;
+      pinDocTopRef.current = pin.getBoundingClientRect().top + window.scrollY;
+    }
+
+    function measureNaturalHeight() {
+      naturalHeightRef.current = stickyRef.current?.offsetHeight ?? 0;
+    }
+
     // 페이지 구조상 문단은 BirdIconRow의 형제가 아니라, BirdIconRow를 감싼 래퍼
     // div의 다음 형제로 렌더링된다 (app/page.tsx 참고). ref를 문단까지 넘길 필요
     // 없이 이 상대적 위치로 직접 찾는다.
@@ -106,6 +130,8 @@ export function BirdIconRow() {
 
     measureStartX();
     measureGridHeights();
+    measurePinDocTop();
+    measureNaturalHeight();
 
     if (prefersReducedMotion) {
       BIRD_ICONS.forEach((_, i) => {
@@ -121,15 +147,21 @@ export function BirdIconRow() {
 
     const applyProgress = () => {
       const pin = pinRef.current;
-      const sticky = stickyRef.current;
-      if (!pin || !sticky) return;
+      if (!pin) return;
 
+      // getBoundingClientRect()/offsetHeight로 매 프레임 다시 재는 대신, 스크롤
+      // 위치와 무관하게 고정인 값들은 마운트/리사이즈 때 한 번만 잰 캐시를 쓴다
+      // — 강제 동기 레이아웃(reflow)을 애니메이션 프레임 밖으로 빼내기 위함.
+      const naturalHeight = naturalHeightRef.current;
       const rampProgress = Math.min(1, Math.max(0, window.scrollY / RAMP_DISTANCE));
-      const naturalHeight = sticky.offsetHeight;
-      pin.style.height = `${naturalHeight + (PIN_HEIGHT - naturalHeight) * rampProgress}px`;
+      const targetHeight = naturalHeight + (PIN_HEIGHT - naturalHeight) * rampProgress;
+      if (Math.abs(targetHeight - lastHeightRef.current) > 0.5) {
+        pin.style.height = `${targetHeight}px`;
+        lastHeightRef.current = targetHeight;
+      }
 
-      const pinTop = pin.getBoundingClientRect().top;
-      const scrollable = Math.max(1, PIN_HEIGHT - sticky.offsetHeight);
+      const pinTop = pinDocTopRef.current - window.scrollY;
+      const scrollable = Math.max(1, PIN_HEIGHT - naturalHeight);
       const rawProgress = Math.min(1, Math.max(0, (STICKY_TOP - pinTop) / scrollable));
       const animProgress = Math.min(1, rawProgress / ANIMATE_FRACTION);
       const yProgress = easeOutCubic(Math.min(1, animProgress / Y_FRACTION));
@@ -164,6 +196,9 @@ export function BirdIconRow() {
     const handleResize = () => {
       measureStartX();
       measureGridHeights();
+      measurePinDocTop();
+      measureNaturalHeight();
+      lastHeightRef.current = -1;
     };
 
     loop();
@@ -187,6 +222,7 @@ export function BirdIconRow() {
                 wrapperRefs.current[i] = el;
               }}
               className="flex items-center justify-start"
+              style={{ willChange: "transform" }}
             >
               <Image src={icon.src} alt="" width={40} height={40} className={`w-auto ${icon.heightClass}`} />
             </div>
