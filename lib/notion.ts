@@ -302,7 +302,7 @@ export const getNotionDrinks = unstable_cache(
   { revalidate: 3600, tags: ["drinks"] }
 );
 
-async function fetchDrinkImageUrl(pageId: string): Promise<string | undefined> {
+export async function fetchDrinkImageUrl(pageId: string): Promise<string | undefined> {
   const client = getClient();
   const page = await client.pages.retrieve({ page_id: pageId });
   if (!("properties" in page)) return undefined;

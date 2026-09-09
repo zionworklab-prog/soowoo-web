@@ -1,6 +1,6 @@
 import { unstable_cache } from "next/cache";
 import sharp from "sharp";
-import { resolveDrinkImageUrl } from "@/lib/notion";
+import { fetchDrinkImageUrl } from "@/lib/notion";
 
 // Notion이 파일을 올려두는 S3 버킷만 허용한다 (임의 URL 프록시 방지).
 const ALLOWED_HOST = "prod-files-secure.s3.us-west-2.amazonaws.com";
@@ -19,9 +19,14 @@ export const maxDuration = 30;
 // 전체에서 공유된다 — 그래서 처리된 이미지 바이트 자체를 여기 담아두면 한 번만
 // 성공적으로 처리되면 그 뒤로는 어느 인스턴스가 요청을 받아도 캐시를 그대로
 // 재사용한다.
+// resolveDrinkImageUrl(lib/notion.ts)이 아니라 캐시되지 않은 원본 조회 함수를
+// 직접 쓴다 — unstable_cache로 감싼 함수 안에서 또 다른 unstable_cache 함수를
+// 호출하는(중첩) 건 공식적으로 지원되지 않는 패턴이라, 여기선 피한다. 어차피
+// 이 함수 자체가 처리된 바이트를 30일간 캐시하므로 노션 조회는 캐시 미스일
+// 때만(드물게) 실행되어, 5분 캐시 없이 매번 새로 조회해도 문제없다.
 const getCachedImageVariant = unstable_cache(
   async (ref: string, width: number, quality: number): Promise<string | null> => {
-    const freshUrl = await resolveDrinkImageUrl(ref);
+    const freshUrl = await fetchDrinkImageUrl(ref);
     if (!freshUrl) return null;
 
     let srcUrl: URL;
@@ -64,7 +69,10 @@ export async function GET(request: Request) {
   let base64: string | null;
   try {
     base64 = await getCachedImageVariant(ref, width, quality);
-  } catch {
+  } catch (error) {
+    // 프로덕션에선 클라이언트로 상세 에러가 안 나가니, 최소한 배포 로그에는
+    // 원인이 남도록 기록한다.
+    console.error("[/api/img] failed to build image variant", { ref, width, quality, error });
     return new Response("failed to load image", { status: 502 });
   }
   if (!base64) {
