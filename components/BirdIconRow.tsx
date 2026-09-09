@@ -14,221 +14,92 @@ const BIRD_ICONS = [
   { key: "location", src: "/brand/nav-icons/location.svg", heightClass: "h-5 sm:h-6", yStart: 216 },
 ];
 
-// 스크롤로 애니메이션을 "조작"할 수 있게, 아이콘 줄을 화면에 sticky로 고정해두고
-// 그 동안만 스크롤이 진행되게 하는 여유 구간(px). 이게 없으면 아이콘 줄이 화면
-// 밖으로 스크롤되어 나가버려서 애니메이션이 다 끝나기 전에 잘려 보인다.
-const PIN_HEIGHT = 360;
-// 고정된 채로 있을 때 뷰포트 위쪽과의 여백. 헤더에 바짝 붙어 답답해 보이지 않게
-// 헤더 높이보다 여유를 넉넉히 둔다.
-const STICKY_TOP = 110;
-
-// 고정 구간(scrollable) 중 실제로 움직이는 데 쓰는 비율. 나머지는 "다 펼쳐진 채로
-// 잠깐 멈춰 있는" 홀드 구간 — 완성된 모습을 볼 시간 없이 바로 스크롤이 이어지던
-// 문제를 고치기 위함. 펼쳐지는 동작 자체를 짧고 빠르게 끝내고, 남는 여유를
-// 최대한 홀드 쪽에 몰아줘서 "다 붙어있는 시간"을 늘린다.
-const ANIMATE_FRACTION = 0.6;
-// 애니메이션 구간 중 세로 정렬(같은 줄 맞추기)에 쓰는 비율. 세로/가로가 동시에
-// 같은 속도로 움직이면 중간에 대각선으로 지나가는 것처럼 보여서, 세로를 먼저
-// 빠르게 끝내고 나머지는 가로로만 퍼지게 분리했다.
-const Y_FRACTION = 0.45;
-
-// 스크롤량에 선형으로 그대로 비례하면 다소 기계적으로 느껴져서, 진행도 자체를
-// 이 곡선(ease-out)에 통과시켜 시작은 빠르고 끝에서 부드럽게 감속하도록 한다.
-// 여전히 스크롤 위치에만 의존하는 순수 함수라 "스크롤에 직접 연동, 자동재생
-// 없음" 원칙은 그대로 지킨다 — 시간 기반 보간이나 스프링이 아니다.
-function easeOutCubic(t: number) {
-  return 1 - Math.pow(1 - t, 3);
-}
+// 스크롤 위치에 프레임마다 픽셀 단위로 맞추는 스크럽 방식은 아무리 최적화해도
+// (매 프레임 JS로 transform을 계산) 순수 CSS 트랜지션만큼 매끄럽기 어렵다 —
+// 아이폰 실기기에서 계속 뚝뚝 끊겨 보인다는 피드백으로, "스크롤을 조금이라도
+// 시작하면 그 뒤로는 CSS 트랜지션이 한 번에 부드럽게 펼쳐지는" 방식으로 바꿔본다.
+// 페이지 로드 즉시 재생되는 것(자동재생)은 여전히 원하지 않으므로, 아주 약간의
+// 스크롤이 실제로 있어야 시작한다. 대신 한 번 펼쳐지면 되돌리지 않는다(위로
+// 스크롤해도 다시 접히지 않음) — 스크럽 방식과 가장 크게 달라지는 지점.
+const TRIGGER_SCROLL_Y = 24;
+const REVEAL_MS = 700;
+const REVEAL_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
+const STAGGER_MS = 70;
 
 export function BirdIconRow() {
-  const pinRef = useRef<HTMLDivElement>(null);
-  const stickyRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const wrapperRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const xStartRef = useRef<number[]>([0, 0, 0, 0]);
-  // 새가 포개진 상태를 담기 위해 그리드가 확보해둔 높이(stacked)와, 한 줄로 다
-  // 펼쳐졌을 때 실제로 필요한 높이(collapsed)의 차이. 이 컴포넌트 자신의 실제
-  // 레이아웃 크기는 절대 건드리지 않는다 — 건드리면 sticky의 네이티브 고정 해제
-  // 시점이 우리 진행도 계산과 어긋난다(이전에 겪은 버그). 대신 바로 다음 형제
-  // 요소(문단)를 yProgress에 맞춰 transform으로 끌어올려서, 다 펼쳐졌을 때 문단이
-  // 훨씬 가까워 보이게 한다.
-  const gridHeightsRef = useRef({ stacked: 0, collapsed: 0 });
-  // pin의 문서 기준 top 좌표(스크롤 0일 때). 매 프레임 getBoundingClientRect()로
-  // 다시 재는 대신, 이 값에서 window.scrollY만 빼서 pinTop을 구한다 —
-  // getBoundingClientRect()는 강제 동기 레이아웃(reflow)을 유발해서, 애니메이션
-  // 프레임마다 부르면(특히 이 섹션을 완전히 지나친 뒤에도 계속) 메인 스레드
-  // 부담이 커진다. 아이폰 실기기에서 rAF 루프로 바꾼 뒤에도 여전히 스크롤이
-  // 끊겨 보인 게 이 매 프레임 레이아웃 강제 때문으로 보인다.
-  const pinDocTopRef = useRef(0);
-  const lastHeightRef = useRef(-1);
-  // sticky의 "포개진" 상태 자연 높이(offsetHeight)도 스크롤 중엔 바뀌지 않는
-  // 값이라 매 프레임 다시 읽을 필요가 없다 — 위와 같은 이유로 한 번만 잰다.
-  const naturalHeightRef = useRef(0);
-  // 스크롤 애니메이션에 필요한 여유 공간(PIN_HEIGHT)을 처음부터 예약해두면 페이지
-  // 진입 직후(스크롤 0) 새 아래에 빈 여백이 그대로 보인다. 이 섹션이 페이지 맨 위,
-  // 첫 화면 안에 있어서 "화면 밖에 있을 때 미리 펼쳐두기"도, "스크롤 시작 시점에
-  // 한 번에 펼치기"도 둘 다 문단이 화면에 보이는 채로 훅 밀려나 보인다 — 그래서
-  // 아예 한 번에 펼치지 않고, 스크롤 초반 RAMP_DISTANCE 구간에 걸쳐 스크롤량에
-  // 정비례해서 점진적으로 늘어나게 한다(아이콘 이동과 같은 원리). sticky가 실제로
-  // 고정되는 지점보다 먼저 다 늘어나 있어야 하므로 그보다 확실히 짧게 잡는다.
-  const RAMP_DISTANCE = 120;
 
   useEffect(() => {
-    // 그리드가 실제로 렌더링된 뒤, 각 아이콘의 왼쪽 끝을 0번(홈) 아이콘의 왼쪽 끝에
-    // 맞추는 데 필요한 픽셀 이동량을 측정한다. 반응형 레이아웃에서도 항상 정확히
-    // 같은 x좌표(왼쪽 1열)로 모이게 하기 위함 — % 기반 계산은 grid gap 때문에
-    // 아이콘마다 미세하게 어긋나(대각선처럼 보이는 원인) 이 방식으로 바꿨다.
-    function measureStartX() {
-      const base = wrapperRefs.current[0]?.getBoundingClientRect().left;
-      if (base == null) return;
-      xStartRef.current = wrapperRefs.current.map((el) => {
-        if (!el) return 0;
-        return base - el.getBoundingClientRect().left;
-      });
-    }
-
-    function measureGridHeights() {
-      const heights = wrapperRefs.current.map((el) => el?.offsetHeight ?? 0);
-      const stacked = Math.max(
-        ...BIRD_ICONS.map((icon, i) => icon.yStart + heights[i]),
-        gridRef.current?.offsetHeight ?? 0
-      );
-      const collapsed = Math.max(...heights, 1);
-      gridHeightsRef.current = { stacked, collapsed };
-    }
-
-    // pin 자신의 높이(pin.style.height)를 바꿔도 pin의 top 좌표 자체는 바뀌지
-    // 않는다(자기 높이는 자기보다 아래쪽 요소에만 영향을 준다) — 그래서 이 값은
-    // 한 번만 재도 스크롤 중 계속 유효하다.
-    function measurePinDocTop() {
-      const pin = pinRef.current;
-      if (!pin) return;
-      pinDocTopRef.current = pin.getBoundingClientRect().top + window.scrollY;
-    }
-
-    function measureNaturalHeight() {
-      naturalHeightRef.current = stickyRef.current?.offsetHeight ?? 0;
-    }
-
-    // 페이지 구조상 문단은 BirdIconRow의 형제가 아니라, BirdIconRow를 감싼 래퍼
-    // div의 다음 형제로 렌더링된다 (app/page.tsx 참고). ref를 문단까지 넘길 필요
-    // 없이 이 상대적 위치로 직접 찾는다.
-    function getPullTarget(): HTMLElement | null {
-      const wrapper = pinRef.current?.parentElement;
-      const next = wrapper?.nextElementSibling;
-      return next instanceof HTMLElement ? next : null;
-    }
-
     // 데스크탑에서는 이 컴포넌트 자체가 CSS로 숨겨지고(app/page.tsx 참고) 사이드바의
-    // 정적 새 목록이 그 자리를 대신한다. 화면에 보이지 않는데도 스크롤 리스너를
-    // 붙이거나 다음 형제(문단)에 불필요한 transform을 적용하지 않도록 여기서 완전히
-    // 건너뛴다.
+    // 정적 새 목록이 그 자리를 대신한다.
     const isDesktop = window.matchMedia("(min-width: 768px)").matches;
     if (isDesktop) return;
 
+    const grid = gridRef.current;
+    if (!grid) return;
+
+    // 그리드가 실제로 렌더링된 뒤, 각 아이콘의 왼쪽 끝을 0번(홈) 아이콘의 왼쪽 끝에
+    // 맞추는 데 필요한 픽셀 이동량을 측정한다. 반응형 레이아웃에서도 항상 정확히
+    // 같은 x좌표(왼쪽 1열)로 모이게 하기 위함 — % 기반 계산은 grid gap 때문에
+    // 아이콘마다 미세하게 어긋난다.
+    const base = wrapperRefs.current[0]?.getBoundingClientRect().left ?? 0;
+    const xStart = wrapperRefs.current.map((el) => (el ? base - el.getBoundingClientRect().left : 0));
+    // 포개진 상태일 때 마지막 아이콘이 아래까지 내려가므로, 그 시각적 높이만큼
+    // min-height를 확보해 아래 글귀와 겹치지 않게 한다.
+    const stackedHeight = Math.max(
+      ...BIRD_ICONS.map((icon, i) => icon.yStart + (wrapperRefs.current[i]?.offsetHeight ?? 0))
+    );
+
+    BIRD_ICONS.forEach((icon, i) => {
+      wrapperRefs.current[i]?.style.setProperty("transform", `translate(${xStart[i]}px, ${icon.yStart}px)`);
+    });
+    grid.style.minHeight = `${stackedHeight}px`;
+
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    measureStartX();
-    measureGridHeights();
-    measurePinDocTop();
-    measureNaturalHeight();
-
     if (prefersReducedMotion) {
       BIRD_ICONS.forEach((_, i) => {
         wrapperRefs.current[i]?.style.setProperty("transform", "translate(0px, 0px)");
       });
-      const pullTarget = getPullTarget();
-      if (pullTarget) {
-        const { stacked, collapsed } = gridHeightsRef.current;
-        pullTarget.style.transform = `translateY(-${stacked - collapsed}px)`;
-      }
+      grid.style.minHeight = "0px";
       return;
     }
 
-    const applyProgress = () => {
-      const pin = pinRef.current;
-      if (!pin) return;
-
-      // getBoundingClientRect()/offsetHeight로 매 프레임 다시 재는 대신, 스크롤
-      // 위치와 무관하게 고정인 값들은 마운트/리사이즈 때 한 번만 잰 캐시를 쓴다
-      // — 강제 동기 레이아웃(reflow)을 애니메이션 프레임 밖으로 빼내기 위함.
-      const naturalHeight = naturalHeightRef.current;
-      const rampProgress = Math.min(1, Math.max(0, window.scrollY / RAMP_DISTANCE));
-      const targetHeight = naturalHeight + (PIN_HEIGHT - naturalHeight) * rampProgress;
-      if (Math.abs(targetHeight - lastHeightRef.current) > 0.5) {
-        pin.style.height = `${targetHeight}px`;
-        lastHeightRef.current = targetHeight;
-      }
-
-      const pinTop = pinDocTopRef.current - window.scrollY;
-      const scrollable = Math.max(1, PIN_HEIGHT - naturalHeight);
-      const rawProgress = Math.min(1, Math.max(0, (STICKY_TOP - pinTop) / scrollable));
-      const animProgress = Math.min(1, rawProgress / ANIMATE_FRACTION);
-      const yProgress = easeOutCubic(Math.min(1, animProgress / Y_FRACTION));
-      const xProgress = easeOutCubic(animProgress);
-
-      const pullTarget = getPullTarget();
-      if (pullTarget) {
-        const { stacked, collapsed } = gridHeightsRef.current;
-        pullTarget.style.transform = `translateY(-${(stacked - collapsed) * yProgress}px)`;
-      }
-
-      BIRD_ICONS.forEach((icon, i) => {
+    let revealed = false;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      grid.style.transition = `min-height ${REVEAL_MS}ms ${REVEAL_EASING}`;
+      grid.style.minHeight = "0px";
+      BIRD_ICONS.forEach((_, i) => {
         const el = wrapperRefs.current[i];
         if (!el) return;
-        const x = xStartRef.current[i] * (1 - xProgress);
-        const y = icon.yStart * (1 - yProgress);
-        el.style.transform = `translate(${x}px, ${y}px)`;
+        el.style.transition = `transform ${REVEAL_MS}ms ${REVEAL_EASING} ${i * STAGGER_MS}ms`;
+        el.style.transform = "translate(0px, 0px)";
       });
+      window.removeEventListener("scroll", handleScroll);
+    };
+    const handleScroll = () => {
+      if (window.scrollY > TRIGGER_SCROLL_Y) reveal();
     };
 
-    // iOS Safari는 터치 스크롤(관성 스크롤) 중에 'scroll' 이벤트를 데스크탑
-    // 휠 스크롤보다 훨씬 드문드문 보낸다 — 이벤트가 올 때만 한 프레임 갱신하는
-    // 방식(예전 handleScroll)으로는 그 사이 구간이 듬성듬성 건너뛰어져 뚝뚝
-    // 끊기는 것처럼 보인다. 대신 스크롤 이벤트와 무관하게 매 프레임 계속
-    // scrollY를 읽는 루프를 돌려서, 실제 스크롤 위치를 프레임마다 그대로
-    // 따라가게 한다.
-    let rafId: number;
-    const loop = () => {
-      applyProgress();
-      rafId = requestAnimationFrame(loop);
-    };
-    const handleResize = () => {
-      measureStartX();
-      measureGridHeights();
-      measurePinDocTop();
-      measureNaturalHeight();
-      lastHeightRef.current = -1;
-    };
-
-    loop();
-    window.addEventListener("resize", handleResize);
-    return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", handleResize);
-    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <div ref={pinRef} className="relative">
-      <div ref={stickyRef} className="sticky" style={{ top: STICKY_TOP }}>
-        {/* 포개진 상태일 때 마지막 아이콘이 아래까지 내려가므로, 그 시각적 높이만큼
-            min-height를 확보해 아래 글귀와 겹치지 않게 한다. */}
-        <div ref={gridRef} className="grid min-h-[248px] grid-cols-4 items-start gap-4 sm:min-h-[252px] sm:gap-6">
-          {BIRD_ICONS.map((icon, i) => (
-            <div
-              key={icon.key}
-              ref={(el) => {
-                wrapperRefs.current[i] = el;
-              }}
-              className="flex items-center justify-start"
-              style={{ willChange: "transform" }}
-            >
-              <Image src={icon.src} alt="" width={40} height={40} className={`w-auto ${icon.heightClass}`} />
-            </div>
-          ))}
+    <div ref={gridRef} className="grid grid-cols-4 items-start gap-4 sm:gap-6">
+      {BIRD_ICONS.map((icon, i) => (
+        <div
+          key={icon.key}
+          ref={(el) => {
+            wrapperRefs.current[i] = el;
+          }}
+          className="flex items-center justify-start"
+        >
+          <Image src={icon.src} alt="" width={40} height={40} className={`w-auto ${icon.heightClass}`} />
         </div>
-      </div>
+      ))}
     </div>
   );
 }
