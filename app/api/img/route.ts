@@ -90,7 +90,10 @@ export async function GET(request: Request) {
     // 프로덕션에선 클라이언트로 상세 에러가 안 나가니, 최소한 배포 로그에는
     // 원인이 남도록 기록한다.
     console.error("[/api/img] failed to build image variant", { ref, width, quality, error });
-    return new Response("failed to load image", { status: 502 });
+    // TEMP DEBUG: 원인을 알아내려고 잠깐 에러 내용을 응답에 그대로 노출한다.
+    // 민감 정보가 없는 엔드포인트라 안전하며, 원인 확인 후 바로 되돌린다.
+    const message = error instanceof Error ? `${error.name}: ${error.message}\n${error.stack}` : String(error);
+    return new Response(message, { status: 502 });
   }
   if (!base64) {
     return new Response("image not found", { status: 404 });
