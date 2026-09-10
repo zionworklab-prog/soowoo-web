@@ -23,18 +23,23 @@ export default function Home() {
       </div>
 
       <div>
-        <p className="mt-4 text-body-small text-muted md:mt-0 md:text-[14px]">
-          수우의 주류는 음식 곁에 자연스럽게 놓이는 술들입니다.
-          <br />
-          가볍게 한 잔부터, 긴 밤을 함께 보낼 술까지 준비해두었습니다.
-        </p>
+        <div className="mt-8 flex flex-col gap-2 md:mt-0">
+          <p className="font-serif-kr text-page-title text-ink">水+羽</p>
+          <p className="text-body-small text-muted md:text-[14px]">
+            물(수)처럼 자연스럽게 흐르고,
+            <br />
+            깃(우)처럼 잠시 내려앉았다 다시 날아가는 순간을 담았습니다.
+          </p>
+        </div>
 
         <div className="mt-3 md:mt-8">
           <PhotoRow photos={PHOTOS_GROUP_1} />
         </div>
 
         <p className="mt-16 text-body text-ink sm:mt-20 md:text-[15px]">
-          수우는 물처럼 흐르는 시간과 깃처럼 잠시 내려앉는 순간을 담은 이름입니다.
+          수우의 주류는 음식 곁에 자연스럽게 놓이는 술들입니다.
+          <br />
+          가볍게 한 잔부터, 긴 밤을 함께 보낼 술까지 준비해두었습니다.
         </p>
 
         <div className="mt-3 md:mt-8">
