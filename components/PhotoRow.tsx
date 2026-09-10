@@ -31,8 +31,8 @@ function RevealPhoto({ photo }: { photo: Photo }) {
       ref={ref}
       className={`w-full shrink-0 overflow-hidden transition-all duration-700 ease-out motion-reduce:transition-none ${
         visible
-          ? "translate-y-0 opacity-100"
-          : "translate-y-3 opacity-0 motion-reduce:translate-y-0 motion-reduce:opacity-100"
+          ? "translate-y-0 opacity-100 blur-none"
+          : "translate-y-3 opacity-0 blur-sm motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:blur-none"
       }`}
     >
       <Image

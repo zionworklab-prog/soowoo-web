@@ -24,6 +24,9 @@ export default async function PlaylistPage() {
 
       <div className="flex flex-col gap-2">
         <p className="text-body text-ink">수우에서 흘러나오는 음악입니다.</p>
+        <p className="text-body text-ink">
+          말이 없어도 어색하지 않은 밤을 위한 목록입니다. 안주가 나오고 술이 채워지는 동안, 그 틈을 자연스럽게 채워줍니다.
+        </p>
         <a
           href={PLAYLIST_URL}
           target="_blank"
@@ -35,34 +38,37 @@ export default async function PlaylistPage() {
       </div>
 
       {videos.length > 0 ? (
-        <ul className="flex flex-col">
-          {videos.map((video) => (
-            <li key={video.videoId} className="border-b border-hairline last:border-b-0">
-              <a
-                href={`https://www.youtube.com/watch?v=${video.videoId}&list=${PLAYLIST_ID}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-4 py-3 transition-opacity hover:opacity-70"
-              >
-                <span className="relative h-[54px] w-24 shrink-0 overflow-hidden bg-surface">
-                  {/* eslint-disable-next-line @next/next/no-img-element -- 외부(YouTube) 썸네일, 자체 최적화 파이프라인 대상이 아님 */}
-                  <img src={video.thumbnail} alt="" className="h-full w-full object-cover" />
-                  {video.duration && (
-                    <span className="absolute bottom-1 right-1 bg-black/70 px-1 text-[10px] leading-none text-white">
-                      {video.duration}
-                    </span>
-                  )}
-                </span>
-                <span className="flex min-w-0 flex-col gap-1">
-                  <span className="truncate text-body text-ink">{video.title}</span>
-                  {video.channelTitle && (
-                    <span className="truncate text-body-small text-muted">{video.channelTitle}</span>
-                  )}
-                </span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <div className="flex flex-col gap-3">
+          <p className="text-caption text-muted">총 {videos.length}곡</p>
+          <ul className="flex flex-col">
+            {videos.map((video) => (
+              <li key={video.videoId} className="border-b border-hairline last:border-b-0">
+                <a
+                  href={`https://www.youtube.com/watch?v=${video.videoId}&list=${PLAYLIST_ID}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-4 py-3 transition-opacity hover:opacity-70"
+                >
+                  <span className="relative h-[54px] w-24 shrink-0 overflow-hidden bg-surface">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- 외부(YouTube) 썸네일, 자체 최적화 파이프라인 대상이 아님 */}
+                    <img src={video.thumbnail} alt="" className="h-full w-full object-cover" />
+                    {video.duration && (
+                      <span className="absolute bottom-1 right-1 bg-black/70 px-1 text-[10px] leading-none text-white">
+                        {video.duration}
+                      </span>
+                    )}
+                  </span>
+                  <span className="flex min-w-0 flex-col gap-1">
+                    <span className="truncate text-body text-ink">{video.title}</span>
+                    {video.channelTitle && (
+                      <span className="truncate text-body-small text-muted">{video.channelTitle}</span>
+                    )}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : (
         <div className="aspect-video w-full overflow-hidden bg-surface">
           <iframe
