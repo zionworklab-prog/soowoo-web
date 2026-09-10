@@ -46,7 +46,7 @@ export function DrinkDetailContent({ drink }: { drink: Drink }) {
           )}
         </div>
 
-        <hr className="my-4 border-t border-hairline" />
+        <hr className="mt-12 mb-4 border-t border-hairline" />
 
         {/* 라벨 열은 실제로 표시되는 가장 긴 라벨 폭에만 맞춰져 값과의 간격이 최소로 유지된다. */}
         <dl className="grid grid-cols-[max-content_1fr] gap-x-2 gap-y-1.5">
