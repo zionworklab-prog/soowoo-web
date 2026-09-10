@@ -88,14 +88,14 @@ export function BirdIconRow() {
   }, []);
 
   return (
-    <div ref={gridRef} className="grid grid-cols-4 items-start gap-4 sm:gap-6">
+    <div ref={gridRef} className="flex items-start justify-between">
       {BIRD_ICONS.map((icon, i) => (
         <div
           key={icon.key}
           ref={(el) => {
             wrapperRefs.current[i] = el;
           }}
-          className="flex items-center justify-start"
+          className="flex items-center"
         >
           <Image src={icon.src} alt="" width={40} height={40} className={`w-auto ${icon.heightClass}`} />
         </div>

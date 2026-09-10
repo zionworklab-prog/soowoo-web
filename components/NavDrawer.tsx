@@ -54,7 +54,7 @@ export function NavDrawer() {
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? "메뉴 닫기" : "메뉴 열기"}
         aria-expanded={open}
-        className="relative z-50 flex h-12 w-12 items-center justify-center text-ink transition-transform duration-150 active:scale-90"
+        className="relative z-50 -mr-[13px] flex h-12 w-12 items-center justify-center text-ink transition-transform duration-150 active:scale-90"
       >
         <MenuIcon
           className={`absolute transition-all duration-300 ease-out ${
