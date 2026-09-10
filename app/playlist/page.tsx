@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
+import { getYoutubePlaylist } from "@/lib/youtube";
 
 const PLAYLIST_ID = "PLIZimEuLDMBAxUCwahwcAogr8TWRjlqzg";
 const PLAYLIST_URL = `https://www.youtube.com/playlist?list=${PLAYLIST_ID}`;
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "플레이리스트 | 이자카야 수우",
 };
 
-export default function PlaylistPage() {
+export default async function PlaylistPage() {
+  let videos: Awaited<ReturnType<typeof getYoutubePlaylist>> = [];
+  try {
+    videos = await getYoutubePlaylist(PLAYLIST_ID);
+  } catch (error) {
+    console.error("[playlist] failed to load YouTube playlist", error);
+  }
+
   return (
     <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-8 px-6 py-12 sm:px-10 sm:py-16">
       <h1 className="text-section font-light tracking-[0.02em] text-ink">플레이리스트</h1>
@@ -24,16 +34,47 @@ export default function PlaylistPage() {
         </a>
       </div>
 
-      <div className="aspect-video w-full overflow-hidden bg-surface">
-        <iframe
-          src={`https://www.youtube.com/embed/videoseries?list=${PLAYLIST_ID}`}
-          className="h-full w-full border-0"
-          loading="lazy"
-          allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          title="수우 플레이리스트"
-        />
-      </div>
+      {videos.length > 0 ? (
+        <ul className="flex flex-col">
+          {videos.map((video) => (
+            <li key={video.videoId} className="border-b border-hairline last:border-b-0">
+              <a
+                href={`https://www.youtube.com/watch?v=${video.videoId}&list=${PLAYLIST_ID}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 py-3 transition-opacity hover:opacity-70"
+              >
+                <span className="relative h-[54px] w-24 shrink-0 overflow-hidden bg-surface">
+                  {/* eslint-disable-next-line @next/next/no-img-element -- 외부(YouTube) 썸네일, 자체 최적화 파이프라인 대상이 아님 */}
+                  <img src={video.thumbnail} alt="" className="h-full w-full object-cover" />
+                  {video.duration && (
+                    <span className="absolute bottom-1 right-1 bg-black/70 px-1 text-[10px] leading-none text-white">
+                      {video.duration}
+                    </span>
+                  )}
+                </span>
+                <span className="flex min-w-0 flex-col gap-1">
+                  <span className="truncate text-body text-ink">{video.title}</span>
+                  {video.channelTitle && (
+                    <span className="truncate text-body-small text-muted">{video.channelTitle}</span>
+                  )}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="aspect-video w-full overflow-hidden bg-surface">
+          <iframe
+            src={`https://www.youtube.com/embed/videoseries?list=${PLAYLIST_ID}`}
+            className="h-full w-full border-0"
+            loading="lazy"
+            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title="수우 플레이리스트"
+          />
+        </div>
+      )}
     </div>
   );
 }
