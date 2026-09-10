@@ -7,11 +7,16 @@ import Image from "next/image";
 // 폭이 좁은 것들이 유독 작아 보인다. 그래서 좁은 아이콘 쪽 높이를 조금 더 키운다.
 // yStart는 "왼쪽 1열로 포개진" 초기 상태의 세로 오프셋(px, 고정). 가로(x) 오프셋은
 // 그리드 열 너비가 반응형이라 고정값을 쓸 수 없어 런타임에 실제 위치를 측정해 구한다.
+// width/height는 각 SVG의 실제 가로세로 비율에 맞춰뒀다 — 넷 다 40x40(정사각형)으로
+// 두면, 실제 비율이 알려지기 전까지 브라우저가 잠시 정사각형으로 공간을 잡았다가
+// 로드 후 진짜 비율로 다시 계산하면서 폭이 바뀐다. 새 줄이 이제 flex+justify-between이라
+// (가운데 두 개 위치가 서로의 폭에 영향을 받음) 이 폭 변경이 나머지 아이콘 위치까지
+// 흔들어 놓아, 접힌 상태(포개짐) 계산이 어긋나 보이는 원인이 됐다.
 const BIRD_ICONS = [
-  { key: "home", src: "/brand/nav-icons/home.svg", heightClass: "h-7 sm:h-8", yStart: 0 },
-  { key: "drinks", src: "/brand/nav-icons/drinks.svg", heightClass: "h-5 sm:h-6", yStart: 72 },
-  { key: "playlist", src: "/brand/nav-icons/playlist.svg", heightClass: "h-7 sm:h-8", yStart: 144 },
-  { key: "location", src: "/brand/nav-icons/location.svg", heightClass: "h-5 sm:h-6", yStart: 216 },
+  { key: "home", src: "/brand/nav-icons/home.svg", heightClass: "h-7 sm:h-8", yStart: 0, width: 30, height: 35 },
+  { key: "drinks", src: "/brand/nav-icons/drinks.svg", heightClass: "h-5 sm:h-6", yStart: 72, width: 60, height: 30 },
+  { key: "playlist", src: "/brand/nav-icons/playlist.svg", heightClass: "h-7 sm:h-8", yStart: 144, width: 40, height: 40 },
+  { key: "location", src: "/brand/nav-icons/location.svg", heightClass: "h-5 sm:h-6", yStart: 216, width: 50, height: 25 },
 ];
 
 // 스크롤 위치에 프레임마다 픽셀 단위로 맞추는 스크럽 방식은 아무리 최적화해도
@@ -97,7 +102,13 @@ export function BirdIconRow() {
           }}
           className="flex items-center"
         >
-          <Image src={icon.src} alt="" width={40} height={40} className={`w-auto ${icon.heightClass}`} />
+          <Image
+            src={icon.src}
+            alt=""
+            width={icon.width}
+            height={icon.height}
+            className={`w-auto ${icon.heightClass}`}
+          />
         </div>
       ))}
     </div>
