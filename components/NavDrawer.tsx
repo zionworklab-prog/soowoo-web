@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 const NAV_ITEMS = [
   { href: "/", label: "홈", icon: "/brand/nav-icons/home.svg", sizeClass: "h-8 w-auto" },
@@ -41,6 +42,7 @@ function MenuIcon({ className = "" }: { className?: string }) {
 export function NavDrawer() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- portal은 hydration mismatch를 피하려 mount 이후에만 렌더링해야 한다.
@@ -80,7 +82,12 @@ export function NavDrawer() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    setOpen(false);
+                    if (pathname === item.href) {
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
+                  }}
                   style={{ transitionDelay: open ? `${i * 40}ms` : "0ms" }}
                   className={`flex flex-col items-center gap-2 text-[14px] font-light tracking-[0.02em] text-ink transition-all duration-300 ease-out hover:text-muted ${
                     open ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"

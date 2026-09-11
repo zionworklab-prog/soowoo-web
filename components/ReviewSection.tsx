@@ -74,7 +74,7 @@ export function ReviewSection({ slug }: { slug: string }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || !name.trim()) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -91,7 +91,7 @@ export function ReviewSection({ slug }: { slug: string }) {
       saveToken(id, deleteToken);
       setTokens(readTokens());
       setReviews((prev) => [
-        { id, slug, name: name.trim() || "익명", rating, content, createdTime: new Date().toISOString() },
+        { id, slug, name: name.trim(), rating, content, createdTime: new Date().toISOString() },
         ...(prev ?? []),
       ]);
       setName("");
@@ -120,13 +120,13 @@ export function ReviewSection({ slug }: { slug: string }) {
   }
 
   return (
-    <div className="mt-8 flex flex-col gap-4">
+    <div className="mt-4 flex flex-col gap-4">
       <p className="text-caption text-muted">손님 후기{reviews ? ` (${reviews.length})` : ""}</p>
 
       {reviews === null ? (
         <p className="text-body-small text-muted">불러오는 중…</p>
       ) : reviews.length === 0 ? (
-        <p className="text-body-small text-muted">아직 등록된 후기가 없습니다.</p>
+        <p className="text-body-small text-border-strong">아직 등록된 후기가 없습니다.</p>
       ) : (
         <ul className="flex flex-col gap-4">
           {reviews.map((review) => (
@@ -152,15 +152,16 @@ export function ReviewSection({ slug }: { slug: string }) {
         </ul>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-2 flex flex-col gap-3">
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
         <Stars value={rating} onChange={setRating} />
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="이름 (선택)"
+          placeholder="닉네임"
           maxLength={40}
-          className="w-32 border-b border-hairline bg-transparent pb-1 text-body-small text-ink outline-none placeholder:text-muted focus:border-ink"
+          required
+          className="w-32 border-b border-hairline bg-transparent pb-1 text-body-small text-ink outline-none placeholder:text-border-strong focus:border-ink"
         />
         <textarea
           value={content}
@@ -169,7 +170,7 @@ export function ReviewSection({ slug }: { slug: string }) {
           rows={3}
           maxLength={1000}
           required
-          className="w-full resize-none border border-hairline bg-transparent p-3 text-body-small text-ink outline-none placeholder:text-muted focus:border-ink"
+          className="w-full resize-none border border-hairline bg-transparent p-3 text-body-small text-ink outline-none placeholder:text-border-strong focus:border-ink"
         />
         {error && <p className="text-caption text-error">{error}</p>}
         <button

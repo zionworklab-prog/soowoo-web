@@ -17,10 +17,19 @@ const NAV_ITEMS = [
 export function SiteSidebar() {
   const pathname = usePathname();
 
+  // 이미 있는 페이지의 링크(로고 포함, 로고는 항상 "/")를 다시 눌렀을 때는
+  // Next.js가 같은 경로로는 아무 반응도 하지 않아 "눌렀는데 반응이 없다"고
+  // 느껴진다 — 맨 위로 스크롤시켜 클릭에 대한 눈에 보이는 피드백을 준다.
+  const scrollToTopIfCurrent = (href: string) => () => {
+    if (pathname === href) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col justify-between border-r border-hairline px-8 py-10 md:flex">
       <div className="flex flex-col gap-10">
-        <Link href="/" className="inline-flex items-center gap-3">
+        <Link href="/" onClick={scrollToTopIfCurrent("/")} className="inline-flex items-center gap-3">
           <Image src="/brand/logo_kor.svg" alt="수우" width={88} height={41} priority />
         </Link>
 
@@ -31,6 +40,7 @@ export function SiteSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={scrollToTopIfCurrent(item.href)}
                 className={`flex items-center gap-3 transition-colors ${
                   active ? "text-ink" : "text-muted hover:text-ink"
                 }`}
