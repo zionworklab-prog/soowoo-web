@@ -23,7 +23,7 @@ export default function Home() {
       </div>
 
       <div>
-        <div className="mt-8 flex flex-col gap-2 md:mt-0">
+        <div className="mt-8 flex flex-col gap-2 md:mt-[60px]">
           <p className="font-serif-kr text-page-title text-ink">水+羽</p>
           <p className="text-body-small text-muted md:text-[14px]">
             물(수)처럼 자연스럽게 흐르고,
